@@ -32,34 +32,44 @@
 
     <hr>
 
-    {{-- Filter and Search Form --}}
-    <form method="GET" action="{{ route('bahan.bahanmasuk') }}" id="filterForm">
-        <div class="row g-3 align-items-end mb-4">
-            @if (auth()->user()->hasRole('Admin'))
-                <div class="col-md-4 col-lg-3">
-                    <label for="sortBahan" class="form-label">Sortir Kategori Bahan</label>
-                    <select class="form-select" name="kategori_bahan" id="sortBahan" onchange="document.getElementById('filterForm').submit();">
-                        <option value="">Semua</option>
-                        <option value="BBAR" {{ request('kategori_bahan') == 'BBAR' ? 'selected' : '' }}>Bahan Baku Bar</option>
-                        <option value="BBKTC" {{ request('kategori_bahan') == 'BBKTC' ? 'selected' : '' }}>Bahan Baku Kitchen</option>
-                    </select>
-                </div>
-            @endif
-
-            <div class="col-md-5 col-lg-4">
-                <label for="search" class="form-label">Cari Nama Bahan</label>
-                <input type="text" class="form-control" id="search" name="search" placeholder="Masukkan nama bahan..." value="{{ request('search') }}">
+    {{-- Filter --}}
+    <x-filter-bar :action="route('bahan.bahanmasuk')">
+        @if (auth()->user()->hasRole('Admin'))
+            <div class="col-12 col-md-3 col-lg-2">
+                <label class="form-label">Kategori</label>
+                <select class="form-select" name="kategori_bahan">
+                    <option value="">Semua Area</option>
+                    <option value="BBAR" {{ request('kategori_bahan') == 'BBAR' ? 'selected' : '' }}>Bahan Baku Bar</option>
+                    <option value="BBKTC" {{ request('kategori_bahan') == 'BBKTC' ? 'selected' : '' }}>Bahan Baku Kitchen</option>
+                </select>
             </div>
+        @endif
 
-            <div class="col-md-3 col-lg-2 d-grid"> {{-- Use d-grid for full width button on small screens --}}
-                <button type="submit" class="btn btn-secondary">
-                    <i class="fa fa-search"></i> Cari
-                </button>
-            </div>
+        <div class="col-12 col-md-3 col-lg-2">
+            <label class="form-label">Tipe Bahan</label>
+            <select class="form-select" name="tipe">
+                <option value="">Semua Tipe</option>
+                <option value="non-proses" {{ request('tipe') == 'non-proses' ? 'selected' : '' }}>Non-Proses</option>
+                <option value="proses" {{ request('tipe') == 'proses' ? 'selected' : '' }}>Proses (Batch)</option>
+            </select>
         </div>
-    </form>
 
-    <hr>
+        <div class="col-6 col-md-3 col-lg-2">
+            <label class="form-label">Dari Tanggal</label>
+            <input type="date" class="form-control" name="dari_tanggal" value="{{ request('dari_tanggal') }}">
+        </div>
+
+        <div class="col-6 col-md-3 col-lg-2">
+            <label class="form-label">Sampai Tanggal</label>
+            <input type="date" class="form-control" name="sampai_tanggal" value="{{ request('sampai_tanggal') }}">
+        </div>
+
+        <div class="col-12 col-lg-3">
+            <label class="form-label">Cari Nama Bahan</label>
+            <input type="text" class="form-control" name="search" placeholder="Masukkan nama bahan..."
+                value="{{ request('search') }}">
+        </div>
+    </x-filter-bar>
 
     {{-- Bahan Masuk Table --}}
     <div class="table-responsive">
@@ -99,6 +109,8 @@
             </tbody>
         </table>
     </div>
+
+    <x-table-pagination :paginator="$bahanMasuk" label="catatan bahan masuk" />
 </div>
 
     <!-- Modal Tambah Bahan Masuk Bar-->
@@ -284,26 +296,16 @@
             </div>
         </div>
     @endforeach
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    {{-- SweetAlert sudah dimuat global di master.blade.php. Script sinkronisasi #sortBahan
+         lama dihapus: elemennya sudah diganti filter bar (selalu error null), dan ia
+         menimpa <tbody> halaman ini dengan <tbody> dari halaman Daftar Bahan. --}}
     <script>
         @if (session('success'))
-            swal("Berhasil!", "{{ session('success') }}", "success");
-        @endif
-        
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("sortBahan").addEventListener("change", function() {
-                let sortValue = this.value;
-                let url = "{{ route('bahan.index') }}?sort=" + sortValue;
-                fetch(url)
-                    .then(response => response.text())
-                    .then(data => {
-                        document.querySelector("tbody").innerHTML =
-                            new DOMParser().parseFromString(data, "text/html")
-                            .querySelector("tbody").innerHTML;
-                    })
-                    .catch(error => console.error("Error fetching sorted data:", error));
+            document.addEventListener('DOMContentLoaded', function () {
+                if (window.swal) swal("Berhasil!", "{{ session('success') }}", "success");
             });
-        });
+        @endif
+
         document.addEventListener('DOMContentLoaded', function() {
             function setupTipeBahanToggle(selectId, nonProsesId, prosesId) {
                 const tipeSelect = document.getElementById(selectId);

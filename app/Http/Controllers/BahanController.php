@@ -18,9 +18,11 @@ class BahanController extends Controller
         $kategoriBahan = $request->query('kategori_bahan', 'all');
 
         $query = Bahan::query();
+
         if ($request->filled('search')) {
-        $query->where('nama_bahan', 'like', '%' . $request->search . '%');
-    }
+            $query->where('nama_bahan', 'like', '%' . $request->search . '%');
+        }
+
         // Filter berdasarkan kategori bahan (BBAR / BBKTC)
         if ($kategoriBahan === 'BBAR') {
             $query->where('kode_bahan', 'like', 'BBAR%');
@@ -39,20 +41,36 @@ class BahanController extends Controller
             });
         }
 
-        $bahan = $query->orderBy('status', 'desc')->get();
-
-        // Proses status stok
-        foreach ($bahan as $item) {
-            if ($item->sisa_stok > $item->batas_minimum) {
-                $item->status = '<span class="badge bg-success">AMAN</span>';
-            } elseif ($item->sisa_stok > 0) {
-                $item->status = '<span class="badge bg-warning text-dark">MENIPIS</span>';
-            } else {
-                $item->status = '<span class="badge bg-danger">HABIS</span>';
-            }
+        if ($request->filled('jenis_bahan')) {
+            $query->where('jenis_bahan', $request->jenis_bahan);
         }
 
-        return view('bahan.daftarbahan', compact('bahan', 'kategoris'));
+        if ($request->filled('satuan')) {
+            $query->where('satuan', $request->satuan);
+        }
+
+        // Filter status stok — dihitung dari sisa_stok vs batas_minimum, sama seperti
+        // yang ditampilkan komponen <x-status-badge>.
+        match ($request->query('status_stok')) {
+            'habis' => $query->where('sisa_stok', '<=', 0),
+            'menipis' => $query->where('sisa_stok', '>', 0)->whereColumn('sisa_stok', '<=', 'batas_minimum'),
+            'aman' => $query->whereColumn('sisa_stok', '>', 'batas_minimum'),
+            default => null,
+        };
+
+        // Urutan HABIS -> MENIPIS -> AMAN. Dulu di-sort di Blade; dipindah ke query karena
+        // sort di view hanya mengurutkan isi satu halaman setelah pagination.
+        $bahan = $query
+            ->orderByRaw('CASE WHEN sisa_stok <= 0 THEN 0 WHEN sisa_stok <= batas_minimum THEN 1 ELSE 2 END')
+            ->orderBy('nama_bahan')
+            ->paginate(15)
+            ->withQueryString();
+
+        // Opsi dropdown filter diambil dari data yang ada, bukan hardcode.
+        $jenisOptions = Bahan::query()->select('jenis_bahan')->distinct()->orderBy('jenis_bahan')->pluck('jenis_bahan');
+        $satuanOptions = Bahan::query()->select('satuan')->distinct()->orderBy('satuan')->pluck('satuan');
+
+        return view('bahan.daftarbahan', compact('bahan', 'kategoris', 'jenisOptions', 'satuanOptions'));
     }
 
 

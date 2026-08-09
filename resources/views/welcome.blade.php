@@ -134,10 +134,10 @@
     <script src="{{ asset('landingpage/js/aos.js') }}"></script>
     <script src="{{ asset('landingpage/js/jquery.animateNumber.min.js') }}"></script>
     <script src="{{ asset('landingpage/js/scrollax.min.js') }}"></script>
-    <script
-        src="{{ asset('landingpage/https://maps.googleapis.com/maps/api/js?key=AIzaSyBVWaKrjvy3MaE7SQ74_uJiULgl1JY0H2s&sensor=false') }}">
-    </script>
-    <script src="{{ asset('landingpage/js/google-map.js') }}"></script>
+    {{-- Skrip Google Maps & google-map.js dihapus: URL absolut sempat dibungkus asset()
+         sehingga selalu 404 (/landingpage/https://...), dan google-map.js menargetkan
+         elemen #map yang tidak pernah ada di halaman ini. Sekaligus menghentikan API key
+         Maps ikut terekspos di halaman publik. --}}
     <script src="{{ asset('landingpage/js/main.js') }}"></script>
 </body>
 

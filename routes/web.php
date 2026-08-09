@@ -56,9 +56,6 @@ Route::middleware(['role:Admin|Headbar|Headkitchen|Bar|Kitchen'])->group(functio
     Route::post('/bahan', [BahanController::class, 'store'])->name('bahan.store');
     Route::put('/bahan/{id}', [BahanController::class, 'update'])->name('bahan.update');
     Route::delete('/bahan/{id}', [BahanController::class, 'destroy'])->name('bahan.destroy');
-    // route process non-process
-    Route::get('/bahan/process', [BahanController::class, 'listProcess'])->name('bahan.process');
-    Route::get('/bahan/non-process', [BahanController::class, 'listNonProcess'])->name('bahan.nonprocess');
 });
     //laporan index
     Route::middleware(['role:Admin|Headbar|Headkitchen'])->group(function () {
@@ -171,7 +168,6 @@ Route::post('/laporan/pemantauan/pdf', [PemantauanController::class, 'downloadPD
 Route::middleware(['auth'])->group(function () {
     Route::get('/bahan/process', [BahanProcessController::class, 'index'])->name('bahan.process');
     Route::post('/bahan/process', [BahanProcessController::class, 'store'])->name('bahan.process.store');
-    Route::get('/bahan/process/{id}/edit', [BahanProcessController::class, 'edit'])->name('bahan.process.edit');
     Route::put('/bahan/process/{id}', [BahanProcessController::class, 'update'])->name('bahan.process.update');
     Route::delete('/bahan/process/{id}', [BahanProcessController::class, 'destroy'])->name('bahan.process.destroy');
 });

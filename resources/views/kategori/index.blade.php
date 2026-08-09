@@ -2,16 +2,39 @@
 @section('title', 'Kategori')
 @section('kategori')
 <div class="container">
-    <h1 class="mb-4 mx-5 my-5">Daftar Kategori</h1>
-    <button class="btn btn-primary mb-3 float-end me-3" data-bs-toggle="modal" data-bs-target="#addKategoriModal">
-        <i class="fa fa-plus"></i> Tambah Kategori
-    </button>
+    <div class="page-inner py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
+        <div>
+            <h3 class="fw-bold mb-1">Daftar Kategori</h3>
+            <p class="text-muted mb-0">Pengelompokan bahan baku dan inventaris.</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addKategoriModal">
+            <i class="fa fa-plus me-1"></i> Tambah Kategori
+        </button>
+    </div>
 
     @if(session('success'))
         <div class="alert alert-success">
             {{ session('success') }}
         </div>
     @endif
+
+    {{-- Filter --}}
+    <x-filter-bar :action="route('kategori.index')">
+        <div class="col-12 col-md-4">
+            <label class="form-label">Kelompok</label>
+            <select class="form-select" name="kelompok">
+                <option value="">Semua Kelompok</option>
+                <option value="bahan" {{ request('kelompok') == 'bahan' ? 'selected' : '' }}>Bahan Baku (BB*)</option>
+                <option value="inventaris" {{ request('kelompok') == 'inventaris' ? 'selected' : '' }}>Inventaris (INV*)</option>
+            </select>
+        </div>
+        <div class="col-12 col-md-5">
+            <label class="form-label">Cari Kategori</label>
+            <input type="text" class="form-control" name="search" placeholder="Nama atau kode kategori..."
+                value="{{ request('search') }}">
+        </div>
+    </x-filter-bar>
 
     <!-- Modal Tambah Kategori -->
     <div class="modal fade" id="addKategoriModal" tabindex="-1" aria-labelledby="addKategoriModalLabel" aria-hidden="true">
@@ -108,8 +131,11 @@
             @endforeach
         </tbody>
     </table>
+
+    <x-table-pagination :paginator="$kategoris" label="kategori" />
+    </div>
 </div>
-<script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+{{-- SweetAlert sudah dimuat global di master.blade.php --}}
 <script>
     // Tampilkan SweetAlert saat data berhasil ditambahkan
     @if(session('success'))

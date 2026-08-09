@@ -9,7 +9,7 @@
             <li class="nav-item topbar-user dropdown hidden-caret">
                 <a class="dropdown-toggle profile-pic" data-bs-toggle="dropdown" href="#" aria-expanded="false">
                     <div class="avatar-sm">
-                        <img src="{{ Auth::user()->photo ? asset(Auth::user()->photo) : asset('admin/assets/img/talha.jpg') }}"  class="avatar-img rounded-circle">
+                        <img src="{{ Auth::user()->photo_url }}" class="avatar-img rounded-circle">
                     </div>
                     <span class="profile-username">
                         <span class="op-7">Hi,</span> <span class="fw-bold">{{ Auth::user()->name }}</span>
@@ -20,7 +20,7 @@
                     <li>
                         <div class="user-box">
                             <div class="avatar-lg">
-                                <img src="{{ Auth::user()->photo ? asset(Auth::user()->photo) : asset('admin/assets/img/profile.jpg') }}" 
+                                <img src="{{ Auth::user()->photo_url }}"
                                      alt="image profile" class="avatar-img rounded">
                             </div>
                             <div class="u-text">

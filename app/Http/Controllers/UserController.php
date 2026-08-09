@@ -10,10 +10,25 @@ use Illuminate\Support\Facades\Storage;
 
 class UserController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::with('roles')->get();
-        $roles = Role::all(); // Ambil semua role yang tersedia
+        $query = User::with('roles');
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('email', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('role')) {
+            $role = $request->role;
+            $query->whereHas('roles', fn ($q) => $q->where('name', $role));
+        }
+
+        $users = $query->orderBy('name')->paginate(15)->withQueryString();
+        $roles = Role::orderBy('name')->get();
+
         return view('users.index', compact('users', 'roles'));
     }
 

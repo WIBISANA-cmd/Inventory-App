@@ -7,9 +7,26 @@ use Illuminate\Http\Request;
 
 class KategoriController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $kategoris = Kategori::all();
+        $query = Kategori::query();
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('nama_kategori', 'like', '%' . $request->search . '%')
+                  ->orWhere('kode_kategori', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        // Kelompok: bahan baku (BB*) vs inventaris (INV*)
+        match ($request->query('kelompok')) {
+            'bahan' => $query->where('kode_kategori', 'LIKE', 'BB%'),
+            'inventaris' => $query->where('kode_kategori', 'LIKE', 'INV%'),
+            default => null,
+        };
+
+        $kategoris = $query->orderBy('kode_kategori')->paginate(15)->withQueryString();
+
         return view('kategori.index', compact('kategoris'));
     }
 

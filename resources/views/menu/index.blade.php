@@ -3,19 +3,67 @@
 
 @section('menu')
     <div class="container">
-        <h1 class="mb-4 mx-5 my-5">Daftar Menu</h1>
-
-        @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Headbar') || auth()->user()->hasRole('Headkitchen'))
-            <button class="btn btn-primary mb-3 float-end me-3" data-bs-toggle="modal" data-bs-target="#addmenuModal">
-                <i class="fa fa-plus"></i> Tambah Menu
-            </button>
-        @endif
+        <div class="page-inner py-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
+            <div>
+                <h3 class="fw-bold mb-1">Daftar Menu</h3>
+                <p class="text-muted mb-0">Menu jual beserta komposisi bahan penyusunnya.</p>
+            </div>
+            @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Headbar') || auth()->user()->hasRole('Headkitchen'))
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addmenuModal">
+                    <i class="fa fa-plus me-1"></i> Tambah Menu
+                </button>
+            @endif
+        </div>
 
         @if (session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
 
-        <div class="table-responsive px-3">
+        {{-- Filter --}}
+        <x-filter-bar :action="route('menu.index')">
+            <div class="col-12 col-md-3 col-lg-2">
+                <label class="form-label">Kategori</label>
+                <select class="form-select" name="kategori_id">
+                    <option value="">Semua Kategori</option>
+                    @foreach ($kategoris as $kategori)
+                        <option value="{{ $kategori->id }}" {{ request('kategori_id') == $kategori->id ? 'selected' : '' }}>
+                            {{ $kategori->nama_kategori }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-2">
+                <label class="form-label">Status Menu</label>
+                <select class="form-select" name="status_menu">
+                    <option value="">Semua Status</option>
+                    <option value="Tersedia" {{ request('status_menu') == 'Tersedia' ? 'selected' : '' }}>Tersedia</option>
+                    <option value="Tidak Tersedia" {{ request('status_menu') == 'Tidak Tersedia' ? 'selected' : '' }}>Tidak Tersedia</option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-3">
+                <label class="form-label">Mengandung Bahan</label>
+                <select class="form-select" name="bahan_id">
+                    <option value="">Semua Bahan</option>
+                    @foreach ($bahans as $b)
+                        <option value="{{ $b->id }}" {{ request('bahan_id') == $b->id ? 'selected' : '' }}>
+                            {{ $b->nama_bahan }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-12 col-lg-3">
+                <label class="form-label">Cari Menu</label>
+                <input type="text" class="form-control" name="search" placeholder="Nama atau kode menu..."
+                    value="{{ request('search') }}">
+            </div>
+        </x-filter-bar>
+
+        <div class="card border-0">
+        <div class="table-responsive">
             <table class="table table-bordered table-striped text-center">
                 <thead style="align-content: center;">
                     <tr>
@@ -170,6 +218,10 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+
+        <x-table-pagination :paginator="$menu" label="menu" />
+        </div>
         </div>
 
         <!-- Modal Tambah Menu -->

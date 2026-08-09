@@ -11,14 +11,38 @@ use Illuminate\Support\Facades\Auth;
 
 class MenuController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $user = Auth::user();
-        $menu = Menu::with('bahans', 'bahanProcesses')->get();
         $kategoris = Kategori::where('kode_kategori', 'LIKE', 'BB%')->get();
-        $bahans = Bahan::all();
-        $bahanProcesses = BahanProcess::all();
 
+        $query = Menu::with('bahans', 'bahanProcesses');
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('nama_menu', 'like', '%' . $request->search . '%')
+                  ->orWhere('kode_menu', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('kategori_id')) {
+            $query->where('kategori_id', $request->kategori_id);
+        }
+
+        if ($request->filled('status_menu')) {
+            $query->where('status_menu', $request->status_menu);
+        }
+
+        // Filter berdasarkan bahan tertentu: berguna untuk melihat menu apa saja yang
+        // terdampak bila satu bahan habis.
+        if ($request->filled('bahan_id')) {
+            $bahanId = $request->bahan_id;
+            $query->whereHas('bahans', fn ($q) => $q->where('bahans.id', $bahanId));
+        }
+
+        $menu = $query->orderBy('nama_menu')->paginate(12)->withQueryString();
+
+        $bahans = Bahan::orderBy('nama_bahan')->get();
+        $bahanProcesses = BahanProcess::orderBy('nama_bahan')->get();
 
         return view('menu.index', compact('menu', 'kategoris', 'bahans', 'bahanProcesses'));
     }

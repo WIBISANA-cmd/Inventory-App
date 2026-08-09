@@ -2,17 +2,21 @@
 @section('Profil | Merra Inventory')
 @section('profile')
 <div class="container">
-    <div class="row justify-content-center mx-5 my-5">
-        <div class="col-md-8">
-            <div class="card" style="align-items: center;">
-                <div class="card-header">Profil Saya</div>
-
-                <div class="card-body text-center">
-                    <img src="{{ Auth::user()->photo }}" class="rounded-circle" width="150" height="150" alt="Profile Picture">
-                    <h4 class="mt-3">{{ Auth::user()->name }}</h4>
-                    <p>{{ Auth::user()->email }}</p>
-                    <p>Role: {{ Auth::user()->roles->pluck('name')->implode(', ') }}</p>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">Edit Profil</button>
+    <div class="row justify-content-center my-5 fade-in-up">
+        <div class="col-md-6">
+            <div class="card text-center border-0 shadow-sm">
+                <div class="card-body py-5">
+                    <img src="{{ Auth::user()->photo_url }}" class="rounded-circle border border-3 mb-3"
+                        style="border-color: var(--brand-primary) !important; object-fit: cover;" width="140"
+                        height="140" alt="Profile Picture">
+                    <h4 class="mb-1">{{ Auth::user()->name }}</h4>
+                    <p class="text-muted mb-2">{{ Auth::user()->email }}</p>
+                    <span class="badge-solid badge-solid-info mb-4">{{ Auth::user()->roles->pluck('name')->implode(', ') }}</span>
+                    <div>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                            <i class="fas fa-pen me-1"></i> Edit Profil
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -14,36 +14,45 @@
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 @endif
-                {{-- Form Filter dan Pencarian --}}
-                <form method="GET" action="{{ route('bahan.bahankeluar') }}" id="filterForm">
-                    <div class="row g-3 align-items-end mb-5 m-3">
-                        @if (auth()->user()->hasRole('Admin'))
-                            <div class="col-md-4 py-2">
-                                <label for="sortBahan" class="form-label mx-3">Sortir Kategori Bahan</label>
-                                <select class="form-select" name="kategori_bahan" id="sortBahan"
-                                    onchange="document.getElementById('filterForm').submit();">
-                                    <option value="">Semua</option>
-                                    <option value="BBAR" {{ request('kategori_bahan') == 'BBAR' ? 'selected' : '' }}>Bahan Baku
-                                        Bar</option>
-                                    <option value="BBKTC" {{ request('kategori_bahan') == 'BBKTC' ? 'selected' : '' }}>Bahan Baku
-                                        Kitchen</option>
-                                </select>
-                            </div>
-                        @endif
-
-                        <div class="col-md-4">
-                            <label for="search" class="form-label mx-3">Cari Nama Bahan</label>
-                            <input type="text" class="form-control" id="search" name="search"
-                                placeholder="Masukkan nama bahan..." value="{{ request('search') }}">
+                {{-- Filter --}}
+                <x-filter-bar :action="route('bahan.bahankeluar')">
+                    @if (auth()->user()->hasRole('Admin'))
+                        <div class="col-12 col-md-3 col-lg-2">
+                            <label class="form-label">Kategori</label>
+                            <select class="form-select" name="kategori_bahan">
+                                <option value="">Semua Area</option>
+                                <option value="BBAR" {{ request('kategori_bahan') == 'BBAR' ? 'selected' : '' }}>Bahan Baku Bar</option>
+                                <option value="BBKTC" {{ request('kategori_bahan') == 'BBKTC' ? 'selected' : '' }}>Bahan Baku Kitchen</option>
+                            </select>
                         </div>
+                    @endif
 
-                        <div class="col-md-4 align-content-center">
-                            <button type="submit" class="btn btn-secondary w-50">
-                                <i class="fa fa-search"></i> Cari
-                            </button>
-                        </div>
+                    <div class="col-12 col-md-3 col-lg-2">
+                        <label class="form-label">Sumber Keluar</label>
+                        <select class="form-select" name="sumber">
+                            <option value="">Semua Sumber</option>
+                            <option value="produksi" {{ request('sumber') == 'produksi' ? 'selected' : '' }}>Produksi Batch</option>
+                            <option value="opname" {{ request('sumber') == 'opname' ? 'selected' : '' }}>Stok Opname</option>
+                        </select>
                     </div>
-                </form>
+
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label">Dari Tanggal</label>
+                        <input type="date" class="form-control" name="dari_tanggal" value="{{ request('dari_tanggal') }}">
+                    </div>
+
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <label class="form-label">Sampai Tanggal</label>
+                        <input type="date" class="form-control" name="sampai_tanggal" value="{{ request('sampai_tanggal') }}">
+                    </div>
+
+                    <div class="col-12 col-lg-3">
+                        <label class="form-label">Cari Nama Bahan</label>
+                        <input type="text" class="form-control" name="search"
+                            placeholder="Masukkan nama bahan..." value="{{ request('search') }}">
+                    </div>
+                </x-filter-bar>
+
                 <div class="table-responsive">
                     <table class="table table-bordered table-striped text-center align-middle">
                         <thead class="table-dark">
@@ -73,16 +82,19 @@
                         </tbody>
                     </table>
                 </div>
+
+                <x-table-pagination :paginator="$dataKeluar" label="catatan bahan keluar" />
             </div>
         </div>
     </div>
 
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    {{-- SweetAlert sudah dimuat global di master.blade.php --}}
     <script>
-        @if(session('success'))
-            swal("Berhasil!", "{{ session('success') }}", "success");
+        @if (session('success'))
+            document.addEventListener('DOMContentLoaded', function () {
+                if (window.swal) swal("Berhasil!", "{{ session('success') }}", "success");
+            });
         @endif
-
     </script>
 
     <style>

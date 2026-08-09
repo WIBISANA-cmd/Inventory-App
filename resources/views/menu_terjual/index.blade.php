@@ -4,24 +4,19 @@
 
 @section('MenuTerjual')
     <div class="container">
-        <h1 class="mb-4 px-3">Daftar Menu Terjual</h1>
-        <!-- Form Filter Tanggal -->
-        <form action="{{ route('menu.terjual.index') }}" method="GET" class="row g-3 align-items-center mb-4 px-3">
-            <div class="col-auto">
-                <label for="tanggal" class="col-form-label">Filter Tanggal:</label>
+        <div class="page-inner py-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
+            <div>
+                <h3 class="fw-bold mb-1">Daftar Menu Terjual</h3>
+                <p class="text-muted mb-0">
+                    Total terjual sesuai filter aktif:
+                    <strong>{{ number_format($totalTerjual) }}</strong> porsi
+                </p>
             </div>
-            <div class="col-auto">
-                <input type="date" id="tanggal" name="tanggal" class="form-control" value="{{ request('tanggal') }}">
-            </div>
-            <div class="col-auto">
-                <button type="submit" class="btn btn-secondary">Tampilkan</button>
-            </div>
-        </form>
-
-        <button class="btn btn-primary mb-3 float-end" data-bs-toggle="modal" data-bs-target="#addMenuTerjualModal"
-            style="margin-right: 30px;">
-            <i class="fa fa-plus"></i> Tambah Menu Terjual
-        </button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMenuTerjualModal">
+                <i class="fa fa-plus me-1"></i> Tambah Menu Terjual
+            </button>
+        </div>
 
         @if (session('success'))
             <div class="alert alert-success">
@@ -29,7 +24,40 @@
             </div>
         @endif
 
-        <div class="table-responsive px-3">
+        {{-- Filter --}}
+        <x-filter-bar :action="route('menu.terjual.index')">
+            <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label">Tanggal Tepat</label>
+                <input type="date" name="tanggal" class="form-control" value="{{ request('tanggal') }}">
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label">Dari Tanggal</label>
+                <input type="date" name="dari_tanggal" class="form-control" value="{{ request('dari_tanggal') }}">
+            </div>
+            <div class="col-6 col-md-3 col-lg-2">
+                <label class="form-label">Sampai Tanggal</label>
+                <input type="date" name="sampai_tanggal" class="form-control" value="{{ request('sampai_tanggal') }}">
+            </div>
+            <div class="col-6 col-md-3 col-lg-3">
+                <label class="form-label">Menu</label>
+                <select class="form-select" name="menu_id">
+                    <option value="">Semua Menu</option>
+                    @foreach ($menus as $m)
+                        <option value="{{ $m->id }}" {{ request('menu_id') == $m->id ? 'selected' : '' }}>
+                            {{ $m->nama_menu }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-12 col-lg-2">
+                <label class="form-label">Cari Menu</label>
+                <input type="text" class="form-control" name="search" placeholder="Nama menu..."
+                    value="{{ request('search') }}">
+            </div>
+        </x-filter-bar>
+
+        <div class="card border-0">
+        <div class="table-responsive">
             <table class="table table-bordered table-striped text-center">
                 <thead>
                     <tr>
@@ -124,6 +152,10 @@
                     @endforeach
                 </tbody>
             </table>
+        </div>
+
+        <x-table-pagination :paginator="$menuTerjual" label="catatan penjualan" />
+        </div>
         </div>
     </div>
 

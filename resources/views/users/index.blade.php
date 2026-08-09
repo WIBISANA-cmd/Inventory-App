@@ -4,18 +4,41 @@
 
 @section('pengguna')
 <div class="container">
-    <h1 class="mb-4 mx-5 my-5">Manajemen Pengguna</h1>
-
-    <!-- Tombol Tambah Pengguna -->
-    <button class="btn btn-primary mb-3 float-end me-3" data-bs-toggle="modal" data-bs-target="#modalTambahPengguna">
-        <i class="fa fa-plus"></i> Tambah Pengguna
-    </button>
+    <div class="page-inner py-4">
+    <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
+        <div>
+            <h3 class="fw-bold mb-1">Manajemen Pengguna</h3>
+            <p class="text-muted mb-0">Akun staf beserta perannya di aplikasi.</p>
+        </div>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTambahPengguna">
+            <i class="fa fa-plus me-1"></i> Tambah Pengguna
+        </button>
+    </div>
 
     @if(session('success'))
         <div class="alert alert-success">{{ session('success') }}</div>
     @endif
 
-    <div class="table-responsive px-3" style="overflow-x: auto;">
+    {{-- Filter --}}
+    <x-filter-bar :action="route('users.index')">
+        <div class="col-12 col-md-4">
+            <label class="form-label">Role</label>
+            <select class="form-select" name="role">
+                <option value="">Semua Role</option>
+                @foreach ($roles as $r)
+                    <option value="{{ $r->name }}" {{ request('role') == $r->name ? 'selected' : '' }}>{{ $r->name }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div class="col-12 col-md-5">
+            <label class="form-label">Cari Pengguna</label>
+            <input type="text" class="form-control" name="search" placeholder="Nama atau email..."
+                value="{{ request('search') }}">
+        </div>
+    </x-filter-bar>
+
+    <div class="card border-0">
+    <div class="table-responsive" style="overflow-x: auto;">
         <table class="table table-bordered table-striped text-center">
             <thead style="align-content: center;">
                 <tr>
@@ -89,6 +112,10 @@
                 @endforeach
             </tbody>
         </table>
+    </div>
+
+    <x-table-pagination :paginator="$users" label="pengguna" />
+    </div>
     </div>
 </div>
 

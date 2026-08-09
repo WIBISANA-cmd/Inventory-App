@@ -17,9 +17,8 @@ class BahanKeluarController extends Controller
     // Menampilkan data bahan keluar
     public function index(Request $request)
     {
-        $dataKeluar = BahanKeluar::all();
-        $query = Bahan::query();
         $user = Auth::user();
+
         // Ambil data bahan sesuai role
         $query = Bahan::query();
 
@@ -33,17 +32,47 @@ class BahanKeluarController extends Controller
 
         $bahan = $query->get();
 
-        // Ambil data bahan keluar dengan pencarian jika ada
-        $queryBahanKeluar = BahanKeluar::query();
+        // Riwayat bahan keluar mengikuti cakupan role yang sama seperti daftar bahan.
+        $queryBahanKeluar = BahanKeluar::query()->where(function ($q) use ($user) {
+            if ($user->hasRole(['Admin', 'Headbar', 'Bar'])) {
+                $q->where('kode_bahan', 'LIKE', 'BBAR%');
+            }
+            if ($user->hasRole(['Admin', 'Headkitchen', 'Kitchen'])) {
+                $q->orWhere('kode_bahan', 'LIKE', 'BBKTC%');
+            }
+        });
 
         if ($request->filled('search')) {
             $queryBahanKeluar->where('nama_bahan', 'like', '%' . $request->search . '%');
         }
 
-        $dataKeluar = $queryBahanKeluar->get();
+        if ($request->filled('kategori_bahan')) {
+            $queryBahanKeluar->where('kode_bahan', 'LIKE', $request->kategori_bahan . '%');
+        }
+
+        if ($request->filled('dari_tanggal')) {
+            $queryBahanKeluar->whereDate('tanggal_keluar', '>=', $request->dari_tanggal);
+        }
+
+        if ($request->filled('sampai_tanggal')) {
+            $queryBahanKeluar->whereDate('tanggal_keluar', '<=', $request->sampai_tanggal);
+        }
+
+        // 'produksi' = keluar otomatis dari pembuatan batch bahan proses (punya bahan_masuk_id),
+        // 'opname'   = keluar hasil input stok akhir harian (bahan_masuk_id null).
+        match ($request->query('sumber')) {
+            'produksi' => $queryBahanKeluar->whereNotNull('bahan_masuk_id'),
+            'opname' => $queryBahanKeluar->whereNull('bahan_masuk_id'),
+            default => null,
+        };
+
+        $dataKeluar = $queryBahanKeluar
+            ->orderByDesc('tanggal_keluar')
+            ->orderByDesc('id')
+            ->paginate(15)
+            ->withQueryString();
 
         return view('bahan.bahankeluar', compact('dataKeluar', 'bahan'));
-
     }
     public function laporankeluar(Request $request)
     {

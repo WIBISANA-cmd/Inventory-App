@@ -2,21 +2,11 @@
 <html lang="en">
 
 <head>
+    <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <title>@yield('title', 'Dashboard | Merra Inventory')</title>
     <meta content="width=device-width, initial-scale=1.0, shrink-to-fit=no" name="viewport" />
     <link rel="icon" href="{{ asset('admin/assets/img/kaiadmin/favicon.ico') }}" type="image/x-icon" />
-
-    {{-- External Libraries --}}
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.js"></script>
-    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.1/semantic.min.css" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 
     {{-- Web Fonts --}}
     <script src="{{ asset('admin/assets/js/plugin/webfont/webfont.min.js') }}"></script>
@@ -40,35 +30,18 @@
         });
     </script>
 
-    {{-- Custom Sidebar Style --}}
-    <style>
-        .sidebar {
-            transition: all 0.3s ease;
-            transform: translateX(-100%);
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100%;
-            z-index: 1000;
-        }
-
-        .sidebar.open {
-            transform: translateX(0);
-        }
-
-        @media (min-width: 992px) {
-            .sidebar {
-                transform: none !important;
-                position: static;
-            }
-        }
-    </style>
-
-    {{-- Kaiadmin Core Styles --}}
+    {{-- Kaiadmin Core Styles (satu-satunya sumber Bootstrap CSS — tidak ada duplikat CDN) --}}
     <link rel="stylesheet" href="{{ asset('admin/assets/css/bootstrap.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('admin/assets/css/plugins.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('admin/assets/css/kaiadmin.min.css') }}" />
     <link rel="stylesheet" href="{{ asset('admin/assets/css/demo.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+    {{-- Select2 — searchable dropdown, dipakai otomatis di semua <select> lewat script global di bawah --}}
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+
+    @include('layouts.theme')
 </head>
 
 <body>
@@ -81,7 +54,7 @@
                 <div class="main-header-logo">
                     <div class="logo-header" data-background-color="dark">
                         <a href="{{ url('/') }}" class="logo">
-                            <img src="{{ asset('admin/assets/img/kaiadmin/logomerra.png') }}" alt="Merra Logo"
+                            <img src="{{ asset('admin/assets/img/kaiadmin/favicon.png') }}" alt="Merra Logo"
                                 class="navbar-brand" height="20" />
                         </a>
                         <div class="nav-toggle">
@@ -100,6 +73,10 @@
                 @include('layouts.header')
             </div>
 
+            {{-- JANGAN bungkus @yield ini dalam elemen apa pun: KaiAdmin memakai selector
+                 direct-child `.main-panel > .container` (margin-top 69px untuk memberi ruang
+                 header). Wrapper apa pun membuat aturan itu berhenti berlaku dan konten
+                 tersembunyi di balik header. Animasi masuk halaman ditangani di theme.blade.php. --}}
             @yield('content')
             @yield('kategori')
             @yield('daftarbahan')
@@ -122,186 +99,108 @@
             @yield('detailInventaris')
             @yield('databahanakhir')
             @yield('bahanProcess')
-
         </div>
-
-        <!-- Custom template | don't include it in your project! -->
-        <div class="custom-template">
-            <div class="title">Settings</div>
-            <div class="custom-content">
-                <div class="switcher">
-                    <div class="switch-block">
-                        <h4>Logo Header</h4>
-                        <div class="btnSwitch">
-                            <button type="button" class="selected changeLogoHeaderColor" data-color="dark"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="blue"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="purple"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="light-blue"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="green"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="orange"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="red"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="white"></button>
-                            <br />
-                            <button type="button" class="changeLogoHeaderColor" data-color="dark2"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="blue2"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="purple2"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="light-blue2"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="green2"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="orange2"></button>
-                            <button type="button" class="changeLogoHeaderColor" data-color="red2"></button>
-                        </div>
-                    </div>
-                    <div class="switch-block">
-                        <h4>Navbar Header</h4>
-                        <div class="btnSwitch">
-                            <button type="button" class="changeTopBarColor" data-color="dark"></button>
-                            <button type="button" class="changeTopBarColor" data-color="blue"></button>
-                            <button type="button" class="changeTopBarColor" data-color="purple"></button>
-                            <button type="button" class="changeTopBarColor" data-color="light-blue"></button>
-                            <button type="button" class="changeTopBarColor" data-color="green"></button>
-                            <button type="button" class="changeTopBarColor" data-color="orange"></button>
-                            <button type="button" class="changeTopBarColor" data-color="red"></button>
-                            <button type="button" class="selected changeTopBarColor" data-color="white"></button>
-                            <br />
-                            <button type="button" class="changeTopBarColor" data-color="dark2"></button>
-                            <button type="button" class="changeTopBarColor" data-color="blue2"></button>
-                            <button type="button" class="changeTopBarColor" data-color="purple2"></button>
-                            <button type="button" class="changeTopBarColor" data-color="light-blue2"></button>
-                            <button type="button" class="changeTopBarColor" data-color="green2"></button>
-                            <button type="button" class="changeTopBarColor" data-color="orange2"></button>
-                            <button type="button" class="changeTopBarColor" data-color="red2"></button>
-                        </div>
-                    </div>
-                    <div class="switch-block">
-                        <h4>Sidebar</h4>
-                        <div class="btnSwitch">
-                            <button type="button" class="changeSideBarColor" data-color="white"></button>
-                            <button type="button" class="selected changeSideBarColor" data-color="dark"></button>
-                            <button type="button" class="changeSideBarColor" data-color="dark2"></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-        <!-- End Custom template -->
     </div>
-{{-- Core Scripts --}}
-<script src="{{ asset('admin/assets/js/core/jquery-3.7.1.min.js') }}"></script>
-<script src="{{ asset('admin/assets/js/core/popper.min.js') }}"></script>
-<script src="{{ asset('admin/assets/js/core/bootstrap.min.js') }}"></script>
 
-{{-- Plugins --}}
-<script src="{{ asset('admin/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
-<script src="{{ asset('admin/assets/js/plugin/chart.js/chart.min.js') }}"></script>
-<script src="{{ asset('admin/assets/js/plugin/jquery.sparkline/jquery.sparkline.min.js') }}"></script>
-<script src="{{ asset('admin/assets/js/plugin/chart-circle/circles.min.js') }}"></script>
-<script src="{{ asset('admin/assets/js/plugin/datatables/datatables.min.js') }}"></script>
-<script src="{{ asset('admin/assets/js/plugin/bootstrap-notify/bootstrap-notify.min.js') }}"></script>
-<script src="{{ asset('admin/assets/js/plugin/jsvectormap/jsvectormap.min.js') }}"></script>
-<script src="{{ asset('admin/assets/js/plugin/jsvectormap/world.js') }}"></script>
-<script src="{{ asset('admin/assets/js/plugin/sweetalert/sweetalert.min.js') }}"></script>
+    {{-- Core Scripts (satu sumber per library — sebelumnya jQuery & Bootstrap dimuat berkali-kali) --}}
+    <script src="{{ asset('admin/assets/js/core/jquery-3.7.1.min.js') }}"></script>
+    <script src="{{ asset('admin/assets/js/core/popper.min.js') }}"></script>
+    <script src="{{ asset('admin/assets/js/core/bootstrap.min.js') }}"></script>
 
-{{-- Kaiadmin Scripts --}}
-<script src="{{ asset('admin/assets/js/kaiadmin.min.js') }}"></script>
-<script src="{{ asset('admin/assets/js/setting-demo.js') }}"></script>
-<script src="{{ asset('admin/assets/js/demo.js') }}"></script>
+    {{-- Plugins — hanya yang benar-benar dipakai aplikasi.
+         Chart.js, sparkline, chart-circle, DataTables, bootstrap-notify, dan jsvectormap
+         sengaja TIDAK dimuat: tidak ada satu pun view yang memakainya, dan jsvectormap
+         justru melempar error karena elemen #world-map milik halaman demo template
+         tidak pernah ada di aplikasi ini. --}}
+    <script src="{{ asset('admin/assets/js/plugin/jquery-scrollbar/jquery.scrollbar.min.js') }}"></script>
+    <script src="{{ asset('admin/assets/js/plugin/sweetalert/sweetalert.min.js') }}"></script>
+    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
-{{-- Custom Script --}}
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const toggleSidebarBtn = document.querySelector('.toggle-sidebar');
-        const sidenavTogglerBtn = document.querySelector('.sidenav-toggler');
-        const topbarToggler = document.querySelector('.topbar-toggler');
-        const sidebar = document.querySelector('.sidebar');
+    {{-- Kaiadmin core. setting-demo.js & demo.js tidak dimuat: keduanya skrip halaman demo
+         template (color switcher + chart demo) yang elemennya tidak ada di aplikasi ini. --}}
+    <script src="{{ asset('admin/assets/js/kaiadmin.min.js') }}"></script>
 
-        function toggleSidebar() {
-            document.body.classList.toggle('nav_open');
-            sidebar.classList.toggle('open');
-        }
+    {{-- Custom Script --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const toggleSidebarBtn = document.querySelector('.toggle-sidebar');
+            const sidenavTogglerBtn = document.querySelector('.sidenav-toggler');
+            const topbarToggler = document.querySelector('.topbar-toggler');
+            const sidebar = document.querySelector('.sidebar');
 
-        if (toggleSidebarBtn) {
-            toggleSidebarBtn.addEventListener('click', e => {
-                e.stopPropagation();
-                document.body.classList.toggle('sidebar_minimize');
-            });
-        }
-
-        if (sidenavTogglerBtn) {
-            sidenavTogglerBtn.addEventListener('click', e => {
-                e.stopPropagation();
-                toggleSidebar();
-            });
-        }
-
-        if (topbarToggler) {
-            topbarToggler.addEventListener('click', e => {
-                e.stopPropagation();
-                document.body.classList.toggle('topbar_open');
-            });
-        }
-
-        document.addEventListener('click', e => {
-            if (sidebar.classList.contains('open') &&
-                !sidebar.contains(e.target) &&
-                !sidenavTogglerBtn.contains(e.target)) {
-                sidebar.classList.remove('open');
-                document.body.classList.remove('nav_open');
+            function toggleSidebar() {
+                document.body.classList.toggle('nav_open');
+                sidebar.classList.toggle('open');
             }
+
+            if (toggleSidebarBtn) {
+                toggleSidebarBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    document.body.classList.toggle('sidebar_minimize');
+                });
+            }
+
+            if (sidenavTogglerBtn) {
+                sidenavTogglerBtn.addEventListener('click', e => {
+                    e.stopPropagation();
+                    toggleSidebar();
+                });
+            }
+
+            if (topbarToggler) {
+                topbarToggler.addEventListener('click', e => {
+                    e.stopPropagation();
+                    document.body.classList.toggle('topbar_open');
+                });
+            }
+
+            document.addEventListener('click', e => {
+                if (sidebar && sidebar.classList.contains('open') &&
+                    !sidebar.contains(e.target) &&
+                    !sidenavTogglerBtn.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                    document.body.classList.remove('nav_open');
+                }
+            });
+
+            if (sidebar) {
+                sidebar.addEventListener('click', e => e.stopPropagation());
+            }
+
+            // Searchable select di SEMUA dropdown aplikasi — cukup diaktifkan sekali di sini.
+            // Dropdown yang sengaja dikunci (data-locked) dilewati.
+            if (window.jQuery && jQuery.fn.select2) {
+                jQuery('select:not([data-locked])').select2({
+                    theme: 'bootstrap-5',
+                    width: '100%',
+                    dropdownAutoWidth: true,
+                });
+            }
+
+            // Notifikasi stok menipis realtime — pakai SweetAlert (sudah ter-load) alih-alih alert() browser polos
+            @if (config('broadcasting.connections.pusher.key'))
+                Pusher.logToConsole = false;
+                var pusher = new Pusher("{{ config('broadcasting.connections.pusher.key') }}", {
+                    cluster: "{{ config('broadcasting.connections.pusher.options.cluster') }}",
+                    forceTLS: true
+                });
+                var channel = pusher.subscribe('stok-menipis');
+                channel.bind('stokMenipis', function (data) {
+                    if (window.swal) {
+                        swal({
+                            title: "Stok Menipis!",
+                            text: data.bahan.nama_bahan + " tersisa " + data.bahan.sisa_stok,
+                            icon: "warning",
+                        });
+                    }
+                });
+            @endif
+
         });
-
-        if (sidebar) {
-            sidebar.addEventListener('click', e => e.stopPropagation());
-        }
-
-        // Pusher for stok notification
-        Pusher.logToConsole = true;
-
-        var pusher = new Pusher("{{ env('PUSHER_APP_KEY') }}", {
-            cluster: "{{ env('PUSHER_APP_CLUSTER') }}",
-            forceTLS: true
-        });
-
-        var channel = pusher.subscribe('stok-menipis');
-        channel.bind('stokMenipis', function (data) {
-            alert("⚠️ Stok " + data.bahan.nama_bahan + " menipis! Sisa: " + data.bahan.sisa_stok);
-        });
-
-        // Sparkline charts
-        $("#lineChart").sparkline([102, 109, 120, 99, 110, 105, 115], {
-            type: "line",
-            height: "70",
-            width: "100%",
-            lineWidth: "2",
-            lineColor: "#177dff",
-            fillColor: "rgba(23, 125, 255, 0.14)",
-        });
-
-        $("#lineChart2").sparkline([99, 125, 122, 105, 110, 124, 115], {
-            type: "line",
-            height: "70",
-            width: "100%",
-            lineWidth: "2",
-            lineColor: "#f3545d",
-            fillColor: "rgba(243, 84, 93, .14)",
-        });
-
-        $("#lineChart3").sparkline([105, 103, 123, 100, 95, 105, 115], {
-            type: "line",
-            height: "70",
-            width: "100%",
-            lineWidth: "2",
-            lineColor: "#ffa534",
-            fillColor: "rgba(255, 165, 52, .14)",
-        });
-    });
-</script>
     </script>
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-
+    @stack('scripts')
 </body>
 
 </html>

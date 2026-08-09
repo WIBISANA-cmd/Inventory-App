@@ -41,22 +41,36 @@ class BahanMasukController extends Controller
             $bahanQuery->where('kode_bahan', 'LIKE', 'BBKTC%');
             $prosesQuery->where('kode_bahan', 'LIKE', 'BBKTC%');
         } else {
-            // Jika peran tidak sesuai, kembalikan koleksi kosong
-            $bahanMasuk = collect();
-            $bahans = collect();
-            $bahan_processes = collect();
-            return view('bahan.bahanmasuk', compact('bahanMasuk', 'bahans', 'bahan_processes'));
+            // Role tidak dikenal: kosongkan lewat query supaya view tetap menerima paginator.
+            $bahanMasukQuery->whereRaw('1 = 0');
+            $bahanQuery->whereRaw('1 = 0');
+            $prosesQuery->whereRaw('1 = 0');
         }
 
-        // Terapkan pencarian nama bahan jika ada
+        // Pencarian nama bahan hanya relevan untuk tabel riwayat; dropdown form tambah
+        // tetap menampilkan seluruh bahan agar tidak ikut terpotong filter.
         if ($searchTerm) {
             $bahanMasukQuery->where('nama_bahan', 'like', '%' . $searchTerm . '%');
-            $bahanQuery->where('nama_bahan', 'like', '%' . $searchTerm . '%');
-            $prosesQuery->where('nama_bahan', 'like', '%' . $searchTerm . '%');
         }
 
-        // Ambil data setelah semua filter diterapkan
-        $bahanMasuk = $bahanMasukQuery->get();
+        if ($request->filled('tipe')) {
+            $bahanMasukQuery->where('tipe', $request->tipe);
+        }
+
+        if ($request->filled('dari_tanggal')) {
+            $bahanMasukQuery->whereDate('tanggal_masuk', '>=', $request->dari_tanggal);
+        }
+
+        if ($request->filled('sampai_tanggal')) {
+            $bahanMasukQuery->whereDate('tanggal_masuk', '<=', $request->sampai_tanggal);
+        }
+
+        $bahanMasuk = $bahanMasukQuery
+            ->orderByDesc('tanggal_masuk')
+            ->orderByDesc('id')
+            ->paginate(15)
+            ->withQueryString();
+
         $bahans = $bahanQuery->get();
         $bahan_processes = $prosesQuery->get();
 
@@ -120,7 +134,6 @@ class BahanMasukController extends Controller
                     'kode_bahan' => $bahanProses->kode_bahan,
                     'nama_bahan' => $bahanProses->nama_bahan,
                     'jumlah_masuk' => $jumlahMasuk,
-                    'satuan' => $bahanProses->satuan,
                     'tipe' => $tipe,
                 ]);
 
@@ -181,7 +194,6 @@ class BahanMasukController extends Controller
                     'kode_bahan' => $bahan->kode_bahan,
                     'nama_bahan' => $bahan->nama_bahan,
                     'jumlah_masuk' => $jumlahMasuk,
-                    'satuan' => $bahan->satuan,
                     'tipe' => $tipe,
                 ]);
 

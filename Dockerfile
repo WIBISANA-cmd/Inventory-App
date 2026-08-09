@@ -1,22 +1,11 @@
 # syntax=docker/dockerfile:1
 
-##########################################################
-# Stage 1: Build frontend assets (Vite + Tailwind)
-##########################################################
-FROM node:20-alpine AS frontend
-
-WORKDIR /app
-
-COPY package.json package-lock.json ./
-RUN npm ci
-
-COPY vite.config.js tailwind.config.js postcss.config.js ./
-COPY resources/ resources/
-RUN npm run build
-
+# Catatan: aplikasi ini adalah UI Bootstrap 5 klasik (template "KaiAdmin") yang di-serve
+# langsung dari public/admin — tidak ada build step JS/CSS (Vite/Tailwind/Alpine sudah
+# dihapus karena tidak pernah dipakai). Jadi tidak ada stage Node.js di sini.
 
 ##########################################################
-# Stage 2: Install PHP (Composer) dependencies
+# Stage 1: Install PHP (Composer) dependencies
 ##########################################################
 FROM composer:2 AS vendor
 
@@ -36,7 +25,7 @@ RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
 
 
 ##########################################################
-# Stage 3: Runtime image (Apache + PHP-FPM style, mod_php)
+# Stage 2: Runtime image (Apache + mod_php)
 ##########################################################
 FROM php:8.2-apache AS app
 
@@ -79,9 +68,6 @@ COPY --chown=www-data:www-data . .
 
 # Composer vendor/ built in stage "vendor"
 COPY --from=vendor --chown=www-data:www-data /app/vendor ./vendor
-
-# Compiled frontend assets built in stage "frontend"
-COPY --from=frontend --chown=www-data:www-data /app/public/build ./public/build
 
 # Laravel needs these writable at runtime
 RUN mkdir -p storage/framework/{cache,sessions,testing,views} storage/logs bootstrap/cache \

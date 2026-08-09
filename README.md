@@ -44,12 +44,13 @@ Selain itu tersedia modul untuk mengelola dua kategori operasional bar/kitchen (
 | Framework | Laravel 10 (PHP `^8.1` / `8.4`) |
 | Autentikasi | Laravel Breeze (session-based, `routes/auth.php`) |
 | Otorisasi (Role & Permission) | `spatie/laravel-permission` |
-| Realtime broadcasting | `pusher/pusher-php-server` + `laravel-echo` + `pusher-js` |
+| Realtime broadcasting | `pusher/pusher-php-server` (server) + Pusher JS via CDN (client) |
 | PDF generator | `barryvdh/laravel-dompdf` |
 | Barcode | `milon/barcode` |
 | QR Code | `simplesoftwareio/simple-qrcode` (format SVG, tanpa dependensi Imagick) |
 | API token (opsional) | `laravel/sanctum` |
-| Frontend build | Vite + TailwindCSS + Alpine.js |
+| UI | Bootstrap 5 + template admin "KaiAdmin" (`public/admin/assets`), jQuery, DataTables, SweetAlert, **Select2** (searchable dropdown) — semua di-load via CDN/aset lokal, **tanpa build step** (Vite/Tailwind/Alpine sudah dihapus karena tidak pernah dipakai, lihat [docs/ANALISIS_BUG_DAN_KENDALA.md](docs/ANALISIS_BUG_DAN_KENDALA.md)) |
+| Design tokens | CSS custom properties terpusat di `resources/views/layouts/theme.blade.php` |
 | Database | MySQL / PostgreSQL |
 
 ---
@@ -247,13 +248,18 @@ database/
 ├── migrations/         # Skema tabel (bahan, proses, komposisi, menu, dll.)
 ├── seeders/            # RoleSeeder (5 role + akun Super Admin)
 resources/
-├── views/               # Blade views (per modul)
+├── views/
+│   ├── layouts/          # master.blade.php (layout utama), theme.blade.php (design tokens), sidebar, header
+│   ├── components/       # Blade component reusable (mis. <x-status-badge>)
+│   └── ...                # View per modul
 routes/
 ├── web.php              # Seluruh route aplikasi + middleware role
 ├── auth.php              # Route autentikasi (Breeze)
 public/
-├── build/                # Hasil build Vite (JS/CSS)
-├── admin/, landingpage/  # Aset template UI tambahan
+├── admin/                # Aset template UI KaiAdmin (Bootstrap 5) — ini yang benar-benar dipakai
+├── landingpage/          # Aset landing page tambahan
+docs/
+├── ANALISIS_BUG_DAN_KENDALA.md  # Dokumentasi audit bug & perbaikan
 ```
 
 ---
@@ -263,8 +269,8 @@ public/
 - PHP `>= 8.1` (disarankan 8.2/8.4)
 - Ekstensi PHP: `pdo_mysql`/`pdo_pgsql`, `mbstring`, `bcmath`, `gd`, `zip`, `xml`, `curl`, `intl`
 - Composer 2.x
-- Node.js 18+ & NPM
 - MySQL 8 / PostgreSQL 13+
+- Tidak butuh Node.js/NPM — UI berbasis Bootstrap 5 (aset statis di `public/admin`), tanpa build step
 - (Opsional, untuk notifikasi realtime) Akun Pusher atau layanan kompatibel
 
 ---
@@ -278,7 +284,6 @@ cd Inventory-App
 cp .env.example .env
 
 composer install
-npm install && npm run build   # atau `npm run dev` untuk mode watch
 
 php artisan key:generate
 php artisan storage:link       # wajib, untuk foto profil & aset publik

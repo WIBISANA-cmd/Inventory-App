@@ -39,13 +39,29 @@ class BahanProcessController extends Controller
             });
             $bahanQuery->where('kode_bahan', 'LIKE', 'BBKTC%');
         } else {
-            $bahanProcesses = collect();
-            $bahans = collect();
-            $kategoris = Kategori::all();
-            return view('bahan.process', compact('bahanProcesses', 'bahans', 'kategoris'));
+            // Role tidak dikenal: kosongkan hasil lewat query (bukan early-return collect())
+            // supaya view selalu menerima paginator, bukan dua tipe berbeda.
+            $query->whereRaw('1 = 0');
+            $bahanQuery->whereRaw('1 = 0');
         }
 
-        $bahanProcesses = $query->get();
+        if (request()->filled('search')) {
+            $query->where('nama_bahan', 'like', '%' . request('search') . '%');
+        }
+
+        match (request('status_stok')) {
+            'habis' => $query->where('sisa_stok', '<=', 0),
+            'menipis' => $query->where('sisa_stok', '>', 0)->whereColumn('sisa_stok', '<=', 'batas_minimum'),
+            'aman' => $query->whereColumn('sisa_stok', '>', 'batas_minimum'),
+            default => null,
+        };
+
+        $bahanProcesses = $query
+            ->orderByRaw('CASE WHEN sisa_stok <= 0 THEN 0 WHEN sisa_stok <= batas_minimum THEN 1 ELSE 2 END')
+            ->orderBy('nama_bahan')
+            ->paginate(10)
+            ->withQueryString();
+
         $bahans = $bahanQuery->get();
         $kategoris = Kategori::all();
 

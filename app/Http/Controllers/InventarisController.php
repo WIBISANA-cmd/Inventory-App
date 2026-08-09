@@ -10,27 +10,40 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 class InventarisController extends Controller
 {
     public function index(Request $request)
-{
-    $sort = $request->query('sort', 'all');
-    $kategoris = Kategori::all();
-    
-    // Filter berdasarkan sort
-    $query = Inventaris::query();
-    if ($sort === 'INVB') {
-        $query->where('kode_inventaris', 'like', 'INVB%');
-    } elseif ($sort === 'INVK') {
-        $query->where('kode_inventaris', 'like', 'INVK%');
-    } elseif ($sort === 'INVO') {
-        $query->where('kode_inventaris', 'like', 'INVO%');
-    }else{
-        $query;
+    {
+        $sort = $request->query('sort', 'all');
+        $kategoris = Kategori::all();
+
+        $query = Inventaris::query();
+
+        if (in_array($sort, ['INVB', 'INVK', 'INVO'], true)) {
+            $query->where('kode_inventaris', 'like', $sort . '%');
+        }
+
+        if ($request->filled('search')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('nama_inventaris', 'like', '%' . $request->search . '%')
+                  ->orWhere('kode_inventaris', 'like', '%' . $request->search . '%');
+            });
+        }
+
+        if ($request->filled('kondisi')) {
+            $query->where('kondisi', $request->kondisi);
+        }
+
+        if ($request->filled('satuan')) {
+            $query->where('satuan', $request->satuan);
+        }
+
+        $inventaris = $query
+            ->orderBy('kode_inventaris')
+            ->paginate(15)
+            ->withQueryString();
+
+        $satuanOptions = Inventaris::query()->select('satuan')->distinct()->orderBy('satuan')->pluck('satuan');
+
+        return view('inventaris.index', compact('inventaris', 'kategoris', 'satuanOptions'));
     }
-
-    // Ambil hasil query
-    $inventaris = $query->get();
-
-    return view('inventaris.index', compact('inventaris', 'kategoris'));
-}
 
 public function showAfterLogin($id)
 {

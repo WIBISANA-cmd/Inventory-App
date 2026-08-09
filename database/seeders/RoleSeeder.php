@@ -17,14 +17,21 @@ class RoleSeeder extends Seeder
             Role::firstOrCreate(['name' => $role]);
         }
 
-        // Buat User Contoh
-        $user1 = User::create([
-            'name' => 'Super Admin',
-            'email' => 'superadmin@gmail.com',
-            'password' => bcrypt('Admin123')
-        ]);
+        // Satu akun staff realistis per role, password sama untuk kemudahan demo/testing.
+        $staff = [
+            ['name' => 'Super Admin', 'email' => 'superadmin@gmail.com', 'role' => 'Admin'],
+            ['name' => 'Dimas Pratama', 'email' => 'headbar@merra.test', 'role' => 'Headbar'],
+            ['name' => 'Rani Kusuma', 'email' => 'headkitchen@merra.test', 'role' => 'Headkitchen'],
+            ['name' => 'Bagas Saputra', 'email' => 'bar@merra.test', 'role' => 'Bar'],
+            ['name' => 'Siti Aminah', 'email' => 'kitchen@merra.test', 'role' => 'Kitchen'],
+        ];
 
-        // Berikan role Admin ke user
-        $user1->assignRole('Admin');
+        foreach ($staff as $data) {
+            $user = User::updateOrCreate(
+                ['email' => $data['email']],
+                ['name' => $data['name'], 'password' => bcrypt('Admin123')]
+            );
+            $user->syncRoles([$data['role']]);
+        }
     }
 }

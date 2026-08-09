@@ -13,4 +13,11 @@ class User extends Authenticatable
     protected $fillable = ['name', 'email', 'password', 'photo'];
 
     protected $hidden = ['password', 'remember_token'];
+
+    public function getPhotoUrlAttribute(): string
+    {
+        return $this->photo
+            ? asset('storage/' . ltrim(str_replace('storage/', '', $this->photo), '/'))
+            : asset('admin/assets/img/profile.jpg');
+    }
 } 

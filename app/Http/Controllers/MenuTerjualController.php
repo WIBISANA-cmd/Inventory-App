@@ -9,23 +9,43 @@ use App\Models\Menu;
 class MenuTerjualController extends Controller
 {
     public function index(Request $request)
-{
-    // Buat query builder terlebih dahulu
-    $query = MenuTerjual::with(['menu.bahans.bahanKeluar']);
+    {
+        $query = MenuTerjual::with(['menu.bahans.bahanKeluar']);
 
-    // Filter berdasarkan tanggal jika ada
-    if ($request->filled('tanggal')) {
-        $query->whereDate('tanggal', $request->tanggal);
+        if ($request->filled('tanggal')) {
+            $query->whereDate('tanggal', $request->tanggal);
+        }
+
+        if ($request->filled('dari_tanggal')) {
+            $query->whereDate('tanggal', '>=', $request->dari_tanggal);
+        }
+
+        if ($request->filled('sampai_tanggal')) {
+            $query->whereDate('tanggal', '<=', $request->sampai_tanggal);
+        }
+
+        if ($request->filled('menu_id')) {
+            $query->where('menu_id', $request->menu_id);
+        }
+
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->whereHas('menu', fn ($q) => $q->where('nama_menu', 'like', '%' . $search . '%'));
+        }
+
+        $menuTerjual = $query
+            ->orderByDesc('tanggal')
+            ->orderByDesc('id')
+            ->paginate(15)
+            ->withQueryString();
+
+        // Ringkasan mengikuti filter yang sedang aktif (bukan hanya halaman yang tampil).
+        $totalTerjual = (clone $query)->sum('jumlah_terjual');
+
+        $menus = Menu::orderBy('nama_menu')->get();
+
+        return view('menu_terjual.index', compact('menuTerjual', 'menus', 'totalTerjual'));
     }
-
-    // Urutkan dan ambil datanya
-    $menuTerjual = $query->orderBy('tanggal', 'desc')->get();
-
-    // Ambil semua menu untuk ditampilkan di modal tambah
-    $menus = Menu::all();
-
-    return view('menu_terjual.index', compact('menuTerjual', 'menus'));
-}
 
 
 

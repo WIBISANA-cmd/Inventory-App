@@ -16,7 +16,7 @@ class BahanMasuk extends Model
         'kode_bahan',
         'nama_bahan',
         'jumlah_masuk',
-        'stok_hasil'
+        'tipe',
     ];
 
     public function bahan()

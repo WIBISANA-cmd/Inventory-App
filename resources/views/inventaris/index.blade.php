@@ -1,41 +1,66 @@
 @extends('layouts.master')
 @section('title', 'Daftar Inventaris')
 @section('inventaris')
-    <div class="container py-4"> {{-- Added py-4 for vertical padding --}}
-        <h1 class="mb-4 text-center">Daftar Inventaris</h1> {{-- Centered title --}}
-
-        <div class="d-flex justify-content-end mb-3"> {{-- Flexbox for button alignment --}}
+    <div class="container">
+        <div class="page-inner py-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
+            <div>
+                <h3 class="fw-bold mb-1">Daftar Inventaris</h3>
+                <p class="text-muted mb-0">Aset &amp; peralatan Bar, Kitchen, dan Operasional.</p>
+            </div>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addInventarisModal">
-                <i class="fa fa-plus"></i> Tambah Inventaris
+                <i class="fa fa-plus me-1"></i> Tambah Inventaris
             </button>
         </div>
 
         @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert"> {{-- Added dismissible alert --}}
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
-        {{-- Filter and Search Section --}}
-        <div class="row mb-3 g-3"> {{-- Bootstrap row with gutter --}}
-            <div class="col-md-6 col-lg-4"> {{-- Column for Sort By --}}
-                <label for="sortInventaris" class="form-label">Urutkan Berdasarkan:</label>
-                <select class="form-select" id="sortInventaris"> {{-- Used form-select for better styling --}}
-                    <option value="all">Semua</option>
-                    <option value="INVB">Inventaris Bar</option>
-                    <option value="INVK">Inventaris Kitchen</option>
-                    <option value="INVO">Inventaris Operasional</option>
+        {{-- Filter (server-side, supaya tetap benar lintas halaman pagination) --}}
+        <x-filter-bar :action="route('inventaris.index')">
+            <div class="col-12 col-md-3">
+                <label class="form-label">Kelompok</label>
+                <select class="form-select" name="sort">
+                    <option value="all">Semua Kelompok</option>
+                    <option value="INVB" {{ request('sort') == 'INVB' ? 'selected' : '' }}>Inventaris Bar</option>
+                    <option value="INVK" {{ request('sort') == 'INVK' ? 'selected' : '' }}>Inventaris Kitchen</option>
+                    <option value="INVO" {{ request('sort') == 'INVO' ? 'selected' : '' }}>Inventaris Operasional</option>
                 </select>
             </div>
-            <div class="col-md-6 col-lg-4"> {{-- Column for Search --}}
-                <label for="searchInventaris" class="form-label">Cari Nama Inventaris:</label>
-                <input type="text" class="form-control" id="searchInventaris" placeholder="Cari berdasarkan nama...">
-            </div>
-        </div>
-        {{-- End Filter and Search Section --}}
 
-        <div class="table-responsive"> {{-- Ensures table is scrollable on small screens --}}
+            <div class="col-12 col-md-3">
+                <label class="form-label">Kondisi</label>
+                <select class="form-select" name="kondisi">
+                    <option value="">Semua Kondisi</option>
+                    <option value="Baik" {{ request('kondisi') == 'Baik' ? 'selected' : '' }}>Baik</option>
+                    <option value="Rusak Ringan" {{ request('kondisi') == 'Rusak Ringan' ? 'selected' : '' }}>Rusak Ringan</option>
+                    <option value="Rusak Berat" {{ request('kondisi') == 'Rusak Berat' ? 'selected' : '' }}>Rusak Berat</option>
+                </select>
+            </div>
+
+            <div class="col-12 col-md-2">
+                <label class="form-label">Satuan</label>
+                <select class="form-select" name="satuan">
+                    <option value="">Semua Satuan</option>
+                    @foreach ($satuanOptions as $satuan)
+                        <option value="{{ $satuan }}" {{ request('satuan') == $satuan ? 'selected' : '' }}>{{ $satuan }}</option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-12 col-md-4">
+                <label class="form-label">Cari Inventaris</label>
+                <input type="text" class="form-control" name="search" placeholder="Nama atau kode inventaris..."
+                    value="{{ request('search') }}">
+            </div>
+        </x-filter-bar>
+
+        <div class="card border-0">
+        <div class="table-responsive">
             <table class="table table-bordered table-striped text-center align-middle"> {{-- Added align-middle for vertical alignment --}}
                 <thead class="table-dark"> {{-- Darker header for better contrast --}}
                     <tr>
@@ -145,6 +170,10 @@
                 </tbody>
             </table>
         </div>
+
+        <x-table-pagination :paginator="$inventaris" label="inventaris" />
+        </div>
+        </div>
     </div>
 
     <div class="modal fade" id="addInventarisModal" tabindex="-1" aria-labelledby="addInventarisModalLabel"
@@ -209,47 +238,14 @@
             </div>
         </div>
     </div>
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    {{-- Sort AJAX & search keyup lama dihapus: keduanya hanya bekerja pada baris yang
+         sedang tampil, sehingga memberi hasil menyesatkan begitu data dipaginasi.
+         Keduanya digantikan filter server-side di atas. --}}
     <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            // Sort by functionality
-            document.getElementById("sortInventaris").addEventListener("change", function() {
-                let sortValue = this.value;
-                let url = "{{ route('inventaris.index') }}?sort=" + sortValue;
-
-                fetch(url)
-                    .then(response => response.text())
-                    .then(data => {
-                        // Replace the table body with the sorted data
-                        document.querySelector("tbody").innerHTML =
-                            new DOMParser().parseFromString(data, "text/html")
-                            .querySelector("tbody").innerHTML;
-                    })
-                    .catch(error => console.error("Error fetching sorted data:", error));
+        @if (session('success'))
+            document.addEventListener('DOMContentLoaded', function() {
+                if (window.swal) swal("Berhasil!", "{{ session('success') }}", "success");
             });
-
-            // Search functionality
-            document.getElementById("searchInventaris").addEventListener("keyup", function() {
-                let searchValue = this.value.toLowerCase();
-                let tableRows = document.querySelectorAll("tbody tr");
-
-                tableRows.forEach(function(row) {
-                    // Assuming the 'Nama Inventaris' is in the second <td> (index 1)
-                    let inventoryName = row.children[1].textContent.toLowerCase();
-                    if (inventoryName.includes(searchValue)) {
-                        row.style.display = ""; // Show the row
-                    } else {
-                        row.style.display = "none"; // Hide the row
-                    }
-                });
-            });
-        });
-
-        // SweetAlert for success messages
-        document.addEventListener('DOMContentLoaded', function() {
-            @if (session('success'))
-                swal("Berhasil!", "{{ session('success') }}", "success");
-            @endif
-        });
+        @endif
     </script>
 @endsection

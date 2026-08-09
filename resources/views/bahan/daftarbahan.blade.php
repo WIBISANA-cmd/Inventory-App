@@ -2,7 +2,26 @@
 @section('title', 'Daftar Bahan')
 @section('daftarbahan')
     <div class="container">
-        <h1 class="mb-4 mx-5 my-5">Data Bahan Baku</h1>
+        <div class="page-inner py-4">
+        <div class="d-flex flex-wrap align-items-center justify-content-between mb-4 gap-2">
+            <div>
+                <h3 class="fw-bold mb-1">Data Bahan Baku</h3>
+                <p class="text-muted mb-0">Stok bahan non-proses beserta status ketersediaannya.</p>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Headbar'))
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBahanBarModal">
+                        <i class="fa fa-plus me-1"></i> Tambah Bahan Bar
+                    </button>
+                @endif
+                @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Headkitchen'))
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addBahanKitchenModal">
+                        <i class="fa fa-plus me-1"></i> Tambah Bahan Kitchen
+                    </button>
+                @endif
+            </div>
+        </div>
+
         {{-- Notifikasi Sukses --}}
         @if (session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -11,55 +30,63 @@
             </div>
         @endif
 
-        {{-- Tombol Tambah Bahan Baku --}}
-        <div class="row mb-3 gx-2 justify-content-end">
-            @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Headbar'))
-                <div class="col-auto mb-2"> {{-- Added mb-2 for spacing if buttons wrap --}}
-                    <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addBahanBarModal">
-                        <i class="fa fa-plus"></i> Tambah Bahan Baku Bar
-                    </button>
+        {{-- Filter --}}
+        <x-filter-bar :action="route('bahan.index')">
+            @if (auth()->user()->hasRole('Admin'))
+                <div class="col-12 col-md-3 col-lg-2">
+                    <label class="form-label">Kategori</label>
+                    <select class="form-select" name="kategori_bahan">
+                        <option value="">Semua Area</option>
+                        <option value="BBAR" {{ request('kategori_bahan') == 'BBAR' ? 'selected' : '' }}>Bahan Baku Bar</option>
+                        <option value="BBKTC" {{ request('kategori_bahan') == 'BBKTC' ? 'selected' : '' }}>Bahan Baku Kitchen</option>
+                    </select>
                 </div>
             @endif
-        
-            @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Headkitchen'))
-                <div class="col-auto mb-2"> {{-- Added mb-2 for spacing if buttons wrap --}}
-                    <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addBahanKitchenModal">
-                        <i class="fa fa-plus"></i> Tambah Bahan Baku Kitchen
-                    </button>
-                </div>
-            @endif
-        </div>        
-        {{-- Form Filter dan Pencarian --}}
-        <form method="GET" action="{{ route('bahan.index') }}" id="filterForm">
-            <div class="row g-3 align-items-end mb-4 m-2"> {{-- Added mb-4 for spacing below the form --}}
-                @if (auth()->user()->hasRole('Admin'))
-                    <div class="col-md-4 col-lg-3"> {{-- Adjusted column sizing for better responsiveness --}}
-                        <label for="sortBahan" class="form-label">Sortir Kategori Bahan</label> {{-- Removed mx-3 --}}
-                        <select class="form-select" name="kategori_bahan" id="sortBahan" onchange="document.getElementById('filterForm').submit();">
-                            <option value="">Semua</option>
-                            <option value="BBAR" {{ request('kategori_bahan') == 'BBAR' ? 'selected' : '' }}>Bahan Baku Bar</option>
-                            <option value="BBKTC" {{ request('kategori_bahan') == 'BBKTC' ? 'selected' : '' }}>Bahan Baku Kitchen</option>
-                        </select>
-                    </div>
-                @endif
-        
-                <div class="col-md-5 col-lg-4"> {{-- Adjusted column sizing for better responsiveness --}}
-                    <label for="search" class="form-label">Cari Nama Bahan</label> {{-- Removed mx-3 --}}
-                    <input type="text" class="form-control" id="search" name="search" placeholder="Masukkan nama bahan..." value="{{ request('search') }}">
-                </div>
-        
-                <div class="col-md-3 col-lg-2 d-grid"> {{-- Used d-grid for full width button on small screens and adjusted column sizing --}}
-                    <button type="submit" class="btn btn-secondary">
-                        <i class="fa fa-search"></i> Cari
-                    </button>
-                </div>
+
+            <div class="col-12 col-md-3 col-lg-2">
+                <label class="form-label">Status Stok</label>
+                <select class="form-select" name="status_stok">
+                    <option value="">Semua Status</option>
+                    <option value="aman" {{ request('status_stok') == 'aman' ? 'selected' : '' }}>Aman</option>
+                    <option value="menipis" {{ request('status_stok') == 'menipis' ? 'selected' : '' }}>Menipis</option>
+                    <option value="habis" {{ request('status_stok') == 'habis' ? 'selected' : '' }}>Habis</option>
+                </select>
             </div>
-        </form>
-                {{-- tabel --}}
-        @php
-            use Illuminate\Support\Str;
-        @endphp
-        <div class="table-responsive px-3" style="overflow-x: auto;margin-top:20px;">
+
+            <div class="col-12 col-md-3 col-lg-2">
+                <label class="form-label">Jenis Bahan</label>
+                <select class="form-select" name="jenis_bahan">
+                    <option value="">Semua Jenis</option>
+                    @foreach ($jenisOptions as $jenis)
+                        <option value="{{ $jenis }}" {{ request('jenis_bahan') == $jenis ? 'selected' : '' }}>
+                            {{ ucfirst($jenis) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-12 col-md-3 col-lg-2">
+                <label class="form-label">Satuan</label>
+                <select class="form-select" name="satuan">
+                    <option value="">Semua Satuan</option>
+                    @foreach ($satuanOptions as $satuan)
+                        <option value="{{ $satuan }}" {{ request('satuan') == $satuan ? 'selected' : '' }}>
+                            {{ ucfirst($satuan) }}
+                        </option>
+                    @endforeach
+                </select>
+            </div>
+
+            <div class="col-12 col-md-6 col-lg-3">
+                <label class="form-label">Cari Nama Bahan</label>
+                <input type="text" class="form-control" name="search" placeholder="Masukkan nama bahan..."
+                    value="{{ request('search') }}">
+            </div>
+        </x-filter-bar>
+
+        {{-- tabel --}}
+        <div class="card border-0">
+        <div class="table-responsive" style="overflow-x: auto;">
             <table class="table table-bordered table-striped text-center">
                 <thead style="align-content: center;">
                     <tr>
@@ -77,76 +104,41 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($bahan->sortBy(function ($item) {
-            if ($item->sisa_stok <= 0) {
-                return 0;
-            } elseif ($item->sisa_stok <= $item->batas_minimum) {
-                return 1;
-            } else {
-                return 2;
-            }
-        }) as $item)
-                        @php
-                            $user = Auth::user();
-                            $canSee = false;
-
-                            if ($user->hasRole('Admin')) {
-                                $canSee = true;
-                            } elseif (
-                                ($user->hasRole('Headbar') || $user->hasRole('Bar')) &&
-                                Str::startsWith($item->kode_bahan, 'BBAR')
-                            ) {
-                                $canSee = true;
-                            } elseif (
-                                ($user->hasRole('Headkitchen') || $user->hasRole('Kitchen')) &&
-                                Str::startsWith($item->kode_bahan, 'BBKTC')
-                            ) {
-                                $canSee = true;
-                            }
-                        @endphp
-
-                        @if ($canSee)
-                            <tr>
-                                <td>{{ $item->kode_bahan }}</td>
-                                <td>{{ $item->nama_bahan }}</td>
-                                <td>{{ $item->jenis_bahan }}</td>
-                                {{-- <td>{{ $item->kategori_bahan }}</td> --}}
-                                <td>{{ $item->sisa_stok }}</td>
-                                <td>{{ $item->batas_minimum }}</td>
-                                <td>{{ $item->satuan }}</td>
+                    {{-- Urutan status & pembatasan per role sudah ditangani di query
+                         BahanController::index(); jangan diulang di sini karena akan
+                         merusak jumlah baris per halaman saat dipaginasi. --}}
+                    @foreach ($bahan as $item)
+                        <tr>
+                            <td>{{ $item->kode_bahan }}</td>
+                            <td>{{ $item->nama_bahan }}</td>
+                            <td>{{ $item->jenis_bahan }}</td>
+                            <td>{{ $item->sisa_stok }}</td>
+                            <td>{{ $item->batas_minimum }}</td>
+                            <td>{{ $item->satuan }}</td>
+                            <td>
+                                <x-status-badge :sisa-stok="$item->sisa_stok" :batas-minimum="$item->batas_minimum" />
+                            </td>
+                            @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Headbar') || auth()->user()->hasRole('Headkitchen'))
                                 <td>
-                                    @if ($item->sisa_stok > $item->batas_minimum)
-                                        <span class="badge bg-success">AMAN</span>
-                                    @elseif($item->sisa_stok <= $item->batas_minimum && $item->sisa_stok > 0)
-                                        <span class="badge bg-warning">MENIPIS</span>
-                                    @else
-                                        <span class="badge bg-danger">HABIS</span>
-                                    @endif
+                                    <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
+                                        data-bs-target="#editBahanModal{{ $item->id }}">Edit</button>
+                                    <form action="{{ route('bahan.destroy', $item->id) }}" method="POST"
+                                        class="d-inline"
+                                        onsubmit="return confirm('Apakah Anda yakin ingin menghapus bahan ini?')">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-danger btn-sm btn-delete">Hapus</button>
+                                    </form>
                                 </td>
-                                @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Headbar') || auth()->user()->hasRole('Headkitchen'))
-                                    <td>
-                                        <button class="btn btn-warning btn-sm" data-bs-toggle="modal"
-                                            data-bs-target="#editBahanModal{{ $item->id }}">Edit</button>
-                                        <form action="{{ route('bahan.destroy', $item->id) }}" method="POST"
-                                            class="d-inline"
-                                            onsubmit="return confirm('Apakah Anda yakin ingin menghapus bahan ini?')">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm btn-delete">Hapus</button>
-                                        </form>
-                                    </td>
-                                @endif
-                            </tr>
-                        @endif
+                            @endif
+                        </tr>
                     @endforeach
                 </tbody>
             </table>
         </div>
+
+        <x-table-pagination :paginator="$bahan" label="bahan baku" />
     </div>
-
-
-
-
     </div>
     <!-- Modal Edit Bahan -->
     @foreach ($bahan as $item)
@@ -267,10 +259,11 @@
                         </div>
                         <div class="mb-3">
                             <label for="tipe" class="form-label">Tipe Bahan</label>
-                            <select name="tipe" class="form-control" required readonly>
+                            <select name="tipe" class="form-control" required disabled data-locked>
                                 {{-- <option value="process">Process</option> --}}
                                 <option value="non-process">Non-Process</option>
                             </select>
+                            <input type="hidden" name="tipe" value="non-process">
                         </div>
 
                         <div class="mb-3">
@@ -290,7 +283,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="kategori_bahan" class="form-label">Kategori bahan</label>
-                            <select class="form-control" id="kategori_bahan" name="kategori_bahan" required readonly>
+                            <select class="form-control" id="kategori_bahan" name="kategori_bahan" required disabled data-locked>
                                 @foreach ($kategoris as $kategori)
                                     @if (str_starts_with($kategori->kode_kategori, 'BBAR'))
                                         <option value="{{ $kategori->nama_kategori }}">{{ $kategori->nama_kategori }}
@@ -298,6 +291,8 @@
                                     @endif
                                 @endforeach
                             </select>
+                            <input type="hidden" name="kategori_bahan"
+                                value="{{ $kategoris->first(fn($k) => str_starts_with($k->kode_kategori, 'BBAR'))?->nama_kategori }}">
                         </div>
 
                         <div class="mb-3">
@@ -359,9 +354,10 @@
                         </div>
                         <div class="mb-3">
                             <label for="tipe" class="form-label">Tipe Bahan</label>
-                            <select name="tipe" class="form-control" required readonly>
+                            <select name="tipe" class="form-control" required disabled data-locked>
                                 <option value="non-process">Non-Process</option>
                             </select>
+                            <input type="hidden" name="tipe" value="non-process">
                         </div>
                         <div class="mb-3">
                             <label for="jenis_bahan" class="form-label">Jenis Bahan</label>
@@ -374,7 +370,7 @@
                         </div>
                         <div class="mb-3">
                             <label for="kategori_bahan" class="form-label">Kategori bahan</label>
-                            <select class="form-control" id="kategori_bahan" name="kategori_bahan" required readonly>
+                            <select class="form-control" id="kategori_bahan" name="kategori_bahan" required disabled data-locked>
                                 @foreach ($kategoris as $kategori)
                                     @if (str_starts_with($kategori->kode_kategori, 'BBKTC'))
                                         <option value="{{ $kategori->nama_kategori }}">{{ $kategori->nama_kategori }}
@@ -382,6 +378,8 @@
                                     @endif
                                 @endforeach
                             </select>
+                            <input type="hidden" name="kategori_bahan"
+                                value="{{ $kategoris->first(fn($k) => str_starts_with($k->kode_kategori, 'BBKTC'))?->nama_kategori }}">
                         </div>
 
                         <div class="mb-3">
@@ -402,26 +400,18 @@
         </div>
     </div>
     {{-- end --}}
-    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    </div>{{-- /.container --}}
+
+    {{-- SweetAlert sudah dimuat global di master.blade.php, tidak perlu CDN lagi di sini.
+         Script sinkronisasi #sortBahan lama dihapus: elemennya sudah diganti filter bar,
+         sehingga addEventListener-nya selalu error null, dan penggantian <tbody> lewat
+         AJAX tidak lagi relevan setelah filter memakai submit form biasa. --}}
     <script>
         @if (session('success'))
-            swal("Berhasil!", "{{ session('success') }}", "success");
-        @endif
-
-        document.addEventListener("DOMContentLoaded", function() {
-            document.getElementById("sortBahan").addEventListener("change", function() {
-                let sortValue = this.value;
-                let url = "{{ route('bahan.index') }}?sort=" + sortValue;
-                fetch(url)
-                    .then(response => response.text())
-                    .then(data => {
-                        document.querySelector("tbody").innerHTML =
-                            new DOMParser().parseFromString(data, "text/html")
-                            .querySelector("tbody").innerHTML;
-                    })
-                    .catch(error => console.error("Error fetching sorted data:", error));
+            document.addEventListener('DOMContentLoaded', function () {
+                if (window.swal) swal("Berhasil!", "{{ session('success') }}", "success");
             });
-        });
+        @endif
     </script>
     <style>
         @media (max-width: 768px) {

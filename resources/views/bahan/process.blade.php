@@ -23,27 +23,34 @@
         @if (session('success'))
             <div class="alert alert-success">{{ session('success') }}</div>
         @endif
-        {{-- sort by --}}
-        <div class="mb-3 px-3">
-            <form method="GET" action="{{ route('bahan.process') }}" id="filterForm">
-                <div class="row">
-                    <div class="col-md-3">
-                        <label for="sortBahan" class="form-label">Sort By Kategori:</label>
-                        <select class="form-control" name="kategori_bahan" id="sortBahan"
-                            onchange="document.getElementById('filterForm').submit();">
-                            <option value="">Semua</option>
-                            <option value="BBAR" {{ request('kategori_bahan') == 'BBAR' ? 'selected' : '' }}>Bahan Baku
-                                Bar</option>
-                            <option value="BBKTC" {{ request('kategori_bahan') == 'BBKTC' ? 'selected' : '' }}>Bahan Baku
-                                Kitchen</option>
-                        </select>
-                    </div>
-                </div>
-            </form>
-        </div>
-        {{-- sort by end --}}
+        {{-- Filter --}}
+        <x-filter-bar :action="route('bahan.process')">
+            <div class="col-12 col-md-3">
+                <label class="form-label">Kategori</label>
+                <select class="form-select" name="kategori_bahan">
+                    <option value="">Semua Area</option>
+                    <option value="BBAR" {{ request('kategori_bahan') == 'BBAR' ? 'selected' : '' }}>Bahan Baku Bar</option>
+                    <option value="BBKTC" {{ request('kategori_bahan') == 'BBKTC' ? 'selected' : '' }}>Bahan Baku Kitchen</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-3">
+                <label class="form-label">Status Stok</label>
+                <select class="form-select" name="status_stok">
+                    <option value="">Semua Status</option>
+                    <option value="aman" {{ request('status_stok') == 'aman' ? 'selected' : '' }}>Aman</option>
+                    <option value="menipis" {{ request('status_stok') == 'menipis' ? 'selected' : '' }}>Menipis</option>
+                    <option value="habis" {{ request('status_stok') == 'habis' ? 'selected' : '' }}>Habis</option>
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label">Cari Nama Bahan Proses</label>
+                <input type="text" class="form-control" name="search" placeholder="Masukkan nama racikan..."
+                    value="{{ request('search') }}">
+            </div>
+        </x-filter-bar>
+
         {{-- TABEL --}}
-        <div class="table-responsive px-3">
+        <div class="table-responsive">
             <table class="table table-bordered table-striped text-center">
                 <thead>
                     <tr>
@@ -55,6 +62,7 @@
                         <th>Komposisi Bahan</th>
                         <th>Batas Minimum</th>
                         <th>Satuan</th>
+                        <th>Status</th>
                         @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Headbar') || auth()->user()->hasRole('Headkitchen'))
                             <th>Aksi</th>
                         @endif
@@ -81,6 +89,9 @@
                             </td>
                             <td>{{ $item->batas_minimum }}</td>
                             <td>{{ $item->satuan }}</td>
+                            <td>
+                                <x-status-badge :sisa-stok="$item->sisa_stok" :batas-minimum="$item->batas_minimum" />
+                            </td>
                             @if (auth()->user()->hasRole('Admin') || auth()->user()->hasRole('Headbar') || auth()->user()->hasRole('Headkitchen'))
                                 <td>
                                     <button class="btn btn-warning btn-sm mb-1" data-bs-toggle="modal"
@@ -101,6 +112,8 @@
                 </tbody>
             </table>
         </div>
+
+        <x-table-pagination :paginator="$bahanProcesses" label="bahan proses" />
         {{-- END TABEL --}}
         <!-- Modal Edit Proses -->
         @foreach ($bahanProcesses as $item)
