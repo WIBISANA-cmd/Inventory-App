@@ -33,10 +33,11 @@ vercel.json
 nixpacks.toml
 .cpanel.yml
 
-Dockerfile
-docker
+# CATATAN: jangan exclude folder docker/ di sini — Dockerfile mem-COPY
+# docker/entrypoint.sh, docker/apache-vhost.conf, dan docker/php.ini dari build
+# context. Excluding folder itu sempat membuat build Dokploy gagal dengan
+# "COPY docker/entrypoint.sh ...: not found".
 docker-compose*.yml
-.dockerignore
 
 .DS_Store
 *.log
