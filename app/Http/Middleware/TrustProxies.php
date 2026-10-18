@@ -12,7 +12,7 @@ class TrustProxies extends Middleware
      *
      * @var array<int, string>|string|null
      */
-    protected $proxies;
+    protected $proxies = '*'; // Container berjalan di belakang reverse proxy Traefik (Dokploy)
 
     /**
      * The headers that should be used to detect proxies.

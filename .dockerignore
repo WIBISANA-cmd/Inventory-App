@@ -25,8 +25,11 @@ bootstrap/cache/*.php
 tests
 phpunit.xml
 demo-pic
-public/admin
-public/landingpage
+
+# CATATAN: jangan exclude public/admin dan public/landingpage — semua CSS/JS/gambar
+# UI (template KaiAdmin + landing page) di-serve langsung dari sana. Excluding folder
+# itu membuat semua asset 404 di container.
+public/storage
 
 .vercelignore
 vercel.json
