@@ -7,8 +7,7 @@ cd /var/www/html
 chown -R www-data:www-data storage bootstrap/cache || true
 chmod -R 775 storage bootstrap/cache || true
 
-# Config is intentionally NOT cached during image build (env vars aren't available at build
-# time on Dokploy), so clear any stale cache before rebuilding it with runtime env vars.
+php artisan package:discover --ansi || true
 php artisan config:clear
 
 if [ -z "$APP_KEY" ]; then

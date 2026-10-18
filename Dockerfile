@@ -18,10 +18,11 @@ RUN composer install \
     --no-progress \
     --no-scripts \
     --no-autoloader \
+    --ignore-platform-reqs \
     --prefer-dist
 
 COPY . .
-RUN composer dump-autoload --optimize --no-dev --classmap-authoritative
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative --no-scripts
 
 
 ##########################################################
@@ -72,6 +73,7 @@ COPY --chown=www-data:www-data . .
 
 # Composer vendor/ built in stage "vendor"
 COPY --from=vendor --chown=www-data:www-data /app/vendor ./vendor
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Laravel needs these writable at runtime
 RUN mkdir -p storage/framework/{cache,sessions,testing,views} storage/logs bootstrap/cache \
