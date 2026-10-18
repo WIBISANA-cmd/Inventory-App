@@ -30,6 +30,18 @@
             </div>
         @endif
 
+        {{-- Notifikasi Error --}}
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         {{-- Filter --}}
         <x-filter-bar :action="route('bahan.index')">
             @if (auth()->user()->hasRole('Admin'))
@@ -176,12 +188,14 @@
                                         </option>
                                     </select>
                                 </div>
+                            @else
+                                <input type="hidden" name="jenis_bahan" value="{{ $item->jenis_bahan }}">
                             @endif
                             <div class="mb-3">
                                 <label for="batas_minimum{{ $item->id }}" class="form-label">Batas
                                     Minimum</label>
                                 <input type="number" class="form-control w-100" id="batas_minimum{{ $item->id }}"
-                                    name="batas_minimum" value="{{ $item->batas_minimum }}">
+                                    name="batas_minimum" value="{{ $item->batas_minimum ?? 5 }}" min="0" required>
                             </div>
                             @if (auth()->user()->hasRole('Headkitchen') || auth()->user()->hasRole('Headbar'))
                             <div class="mb-3">
@@ -189,6 +203,8 @@
                                 <input type="number" class="form-control w-100" id="sisa_stok{{ $item->id }}"
                                     name="sisa_stok" value="{{ $item->sisa_stok }}">
                             </div>
+                            @else
+                                <input type="hidden" name="sisa_stok" value="{{ $item->sisa_stok }}">
                             @endif
                             <div class="mb-3">
                                 <label for="satuan{{ $item->id }}" class="form-label">Satuan
@@ -234,18 +250,23 @@
                                 @foreach ($kategoris as $kategori)
                                     @if (str_starts_with($kategori->kode_kategori, 'BB'))
                                         @php
-                                            $lastBahan = App\Models\Bahan::where(
-                                                'kode_bahan',
-                                                'like',
-                                                "$kategori->kode_kategori%",
-                                            )
-                                                ->orderBy('kode_bahan', 'desc')
-                                                ->first();
-                                            $nextNumber = $lastBahan
-                                                ? ((int) substr($lastBahan->kode_bahan, -4)) + 1
-                                                : 1;
-                                            $kodeBahan =
-                                                $kategori->kode_kategori . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                                            $prefix = $kategori->kode_kategori;
+                                            $existingCodes = App\Models\Bahan::where('kode_bahan', 'like', "$prefix%")->pluck('kode_bahan');
+                                            $maxNum = 0;
+                                            $padLen = 4;
+                                            foreach ($existingCodes as $c) {
+                                                if (preg_match('/(\d+)$/', $c, $m)) {
+                                                    $val = (int)$m[1];
+                                                    if ($val > $maxNum) {
+                                                        $maxNum = $val;
+                                                    }
+                                                    if (strlen($m[1]) > $padLen) {
+                                                        $padLen = strlen($m[1]);
+                                                    }
+                                                }
+                                            }
+                                            $nextNumber = $maxNum + 1;
+                                            $kodeBahan = $prefix . str_pad($nextNumber, $padLen, '0', STR_PAD_LEFT);
                                         @endphp
                                         <option value="{{ $kodeBahan }}">{{ $kodeBahan }} -
                                             {{ $kategori->nama_kategori }}</option>
@@ -329,18 +350,23 @@
                                 @foreach ($kategoris as $kategori)
                                     @if (str_starts_with($kategori->kode_kategori, 'BBKTC'))
                                         @php
-                                            $lastBahan = App\Models\Bahan::where(
-                                                'kode_bahan',
-                                                'like',
-                                                "$kategori->kode_kategori%",
-                                            )
-                                                ->orderBy('kode_bahan', 'desc')
-                                                ->first();
-                                            $nextNumber = $lastBahan
-                                                ? ((int) substr($lastBahan->kode_bahan, -4)) + 1
-                                                : 1;
-                                            $kodeBahan =
-                                                $kategori->kode_kategori . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                                            $prefix = $kategori->kode_kategori;
+                                            $existingCodes = App\Models\Bahan::where('kode_bahan', 'like', "$prefix%")->pluck('kode_bahan');
+                                            $maxNum = 0;
+                                            $padLen = 4;
+                                            foreach ($existingCodes as $c) {
+                                                if (preg_match('/(\d+)$/', $c, $m)) {
+                                                    $val = (int)$m[1];
+                                                    if ($val > $maxNum) {
+                                                        $maxNum = $val;
+                                                    }
+                                                    if (strlen($m[1]) > $padLen) {
+                                                        $padLen = strlen($m[1]);
+                                                    }
+                                                }
+                                            }
+                                            $nextNumber = $maxNum + 1;
+                                            $kodeBahan = $prefix . str_pad($nextNumber, $padLen, '0', STR_PAD_LEFT);
                                         @endphp
                                         <option value="{{ $kodeBahan }}">{{ $kodeBahan }} -
                                             {{ $kategori->nama_kategori }}</option>

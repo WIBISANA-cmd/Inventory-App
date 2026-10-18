@@ -25,17 +25,32 @@
 
     /* ---------- Animasi masuk halaman & elemen ---------- */
     @keyframes merraFadeIn {
-        from { opacity: 0; transform: translateY(8px); }
-        to { opacity: 1; transform: translateY(0); }
+        from { opacity: 0; }
+        to { opacity: 1; }
     }
 
     /* Animasi diterapkan langsung ke container halaman — tanpa wrapper tambahan, supaya
-       selector direct-child KaiAdmin (.main-panel > .container) tetap utuh. */
+       selector direct-child KaiAdmin (.main-panel > .container) tetap utuh.
+       CATATAN: Jangan gunakan transform pada container karena akan menciptakan stacking context
+       baru yang menjebak elemen position: fixed (seperti modal) di bawah modal-backdrop. */
     .main-panel > .container,
     .main-panel > .container-fluid,
     .main-panel > .container-full,
     .fade-in-up {
         animation: merraFadeIn 0.35s ease both;
+    }
+
+    /* ---------- Modal & Backdrop Layering / Stacking Fix ---------- */
+    .modal-backdrop {
+        z-index: 1050 !important;
+    }
+
+    .modal {
+        z-index: 1055 !important;
+    }
+
+    .modal.show {
+        display: block !important;
     }
 
     @media (prefers-reduced-motion: reduce) {

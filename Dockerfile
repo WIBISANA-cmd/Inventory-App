@@ -5,30 +5,13 @@
 # dihapus karena tidak pernah dipakai). Jadi tidak ada stage Node.js di sini.
 
 ##########################################################
-# Stage 1: Install PHP (Composer) dependencies
+# Stage 1: Base image (PHP 8.2 + Apache + extensions)
 ##########################################################
-FROM composer:2 AS vendor
-
-WORKDIR /app
-
-COPY composer.json composer.lock ./
-RUN composer install \
-    --no-dev \
-    --no-interaction \
-    --no-progress \
-    --no-scripts \
-    --no-autoloader \
-    --ignore-platform-reqs \
-    --prefer-dist
-
-COPY . .
-RUN composer dump-autoload --optimize --no-dev --classmap-authoritative --no-scripts
-
-
-##########################################################
-# Stage 2: Runtime image (Apache + mod_php)
-##########################################################
-FROM php:8.2-apache AS app
+# Composer install SENGAJA dijalankan di atas image ini, bukan di image "composer:2".
+# Image composer:2 memakai versi PHP terbaru (8.5) dan tidak punya ext-gd, sehingga
+# `composer install` gagal (exit code 2) karena lock file butuh ext-gd
+# (milon/barcode, simple-qrcode) dan nette/schema hanya mendukung PHP 8.1 - 8.4.
+FROM php:8.2-apache AS base
 
 # System dependencies required by Laravel + dompdf + gd + zip + pdo drivers
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -59,6 +42,35 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         opcache \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+ENV COMPOSER_ALLOW_SUPERUSER=1
+
+
+##########################################################
+# Stage 2: Install PHP (Composer) dependencies
+##########################################################
+FROM base AS vendor
+
+WORKDIR /app
+
+COPY composer.json composer.lock ./
+RUN composer install \
+    --no-dev \
+    --no-interaction \
+    --no-progress \
+    --no-scripts \
+    --no-autoloader \
+    --prefer-dist
+
+COPY . .
+RUN composer dump-autoload --optimize --no-dev --classmap-authoritative --no-scripts
+
+
+##########################################################
+# Stage 3: Runtime image (Apache + mod_php)
+##########################################################
+FROM base AS app
+
 # Apache: enable rewrite (needed by Laravel's public/.htaccess) and point vhost to /public
 RUN a2enmod rewrite headers
 COPY docker/apache-vhost.conf /etc/apache2/sites-available/000-default.conf
@@ -73,10 +85,9 @@ COPY --chown=www-data:www-data . .
 
 # Composer vendor/ built in stage "vendor"
 COPY --from=vendor --chown=www-data:www-data /app/vendor ./vendor
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 # Laravel needs these writable at runtime
-RUN mkdir -p storage/framework/{cache,sessions,testing,views} storage/logs bootstrap/cache \
+RUN mkdir -p storage/framework/cache storage/framework/sessions storage/framework/testing storage/framework/views storage/logs bootstrap/cache \
     && chown -R www-data:www-data storage bootstrap/cache \
     && chmod -R 775 storage bootstrap/cache
 

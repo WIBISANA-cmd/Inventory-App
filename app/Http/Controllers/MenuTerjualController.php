@@ -72,23 +72,25 @@ class MenuTerjualController extends Controller
     return redirect()->route('menu.terjual.index')->with('success','data berhasil disimpan');
 }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $id = null)
     {
+        $id = $id ?? $request->route('menuTerjual') ?? $request->route('id');
         $request->validate([
-            'jumlah_terjual' => 'required|integer',
+            'jumlah_terjual' => 'required|integer|min:0',
         ]);
 
         $menuTerjual = MenuTerjual::findOrFail($id);
         $menuTerjual->update(['jumlah_terjual' => $request->jumlah_terjual]);
 
-        return redirect()->route('menu.terjual.index')->with('success');
+        return redirect()->route('menu.terjual.index')->with('success', 'Data menu terjual berhasil diperbarui!');
     }
 
-    public function destroy($id)
+    public function destroy($id = null)
     {
+        $id = $id ?? request()->route('menuTerjual') ?? request()->route('id');
         $menuTerjual = MenuTerjual::findOrFail($id);
         $menuTerjual->delete();
 
-        return redirect()->route('menu.terjual.index')->with('success');
+        return redirect()->route('menu.terjual.index')->with('success', 'Data menu terjual berhasil dihapus!');
     }
 }

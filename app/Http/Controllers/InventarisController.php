@@ -67,52 +67,54 @@ public function cetakBarcode($id)
 
     
     public function store(Request $request)
-{
-    $request->validate([
-        'kode_inventaris' => 'required|unique:inventaris,kode_inventaris',
-        'nama_inventaris' => 'required',
-        'jumlah_inventaris' => 'nullable|integer',
-        'satuan' => 'required',
-        'kondisi' => 'required',
-    ]);
-
-    $inventaris = Inventaris::create([
-        'kode_inventaris' => $request->kode_inventaris,
-        'nama_inventaris' => $request->nama_inventaris,
-        'jumlah_inventaris' => $request->jumlah_inventaris,
-        'satuan' => $request->satuan,
-        'kondisi' => $request->kondisi,
-    ]);
-    
-    return redirect()->route('inventaris.index')->with('success');
-}
-
-    public function update(Request $request, $id)
     {
         $request->validate([
-            'nama_inventaris' => 'required',
-            'jumlah_inventaris'=> 'required',
-            'satuan'=> 'required',
-            'kondisi'=> 'required',
+            'kode_inventaris' => 'required|unique:inventaris,kode_inventaris',
+            'nama_inventaris' => 'required|string|max:255',
+            'jumlah_inventaris' => 'nullable|integer|min:0',
+            'satuan' => 'required|string',
+            'kondisi' => 'required|string',
         ]);
 
+        Inventaris::create([
+            'kode_inventaris' => $request->kode_inventaris,
+            'nama_inventaris' => $request->nama_inventaris,
+            'jumlah_inventaris' => $request->input('jumlah_inventaris', 1) ?? 1,
+            'satuan' => $request->satuan,
+            'kondisi' => $request->kondisi,
+        ]);
+        
+        return redirect()->route('inventaris.index')->with('success', 'Inventaris baru berhasil ditambahkan!');
+    }
+
+    public function update(Request $request, $id = null)
+    {
+        $id = $id ?? $request->route('inventaris') ?? $request->route('id');
         $inventaris = Inventaris::findOrFail($id);
-        $kategoris = Kategori::where('kode_kategori', 'LIKE', 'INV%')->get();
+
+        $request->validate([
+            'nama_inventaris' => 'required|string|max:255',
+            'jumlah_inventaris' => 'nullable|integer|min:0',
+            'satuan' => 'required|string',
+            'kondisi' => 'required|string',
+        ]);
+
         $inventaris->update([
             'nama_inventaris' => $request->nama_inventaris,
-            'jumlah_inventaris' => $request->jumlah_inventaris,
+            'jumlah_inventaris' => $request->input('jumlah_inventaris', $inventaris->jumlah_inventaris ?? 1) ?? 1,
             'satuan' => $request->satuan,
             'kondisi' => $request->kondisi,
         ]);
 
-        return redirect()->route('inventaris.index')->with('success');
+        return redirect()->route('inventaris.index')->with('success', 'Data inventaris berhasil diperbarui!');
     }
 
-    public function destroy($id)
+    public function destroy($id = null)
     {
+        $id = $id ?? request()->route('inventaris') ?? request()->route('id');
         $inventaris = Inventaris::findOrFail($id);
         $inventaris->delete();
 
-        return redirect()->route('inventaris.index')->with('success');
+        return redirect()->route('inventaris.index')->with('success', 'Data inventaris berhasil dihapus!');
     }
 }

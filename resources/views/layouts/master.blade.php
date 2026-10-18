@@ -168,15 +168,58 @@
                 sidebar.addEventListener('click', e => e.stopPropagation());
             }
 
-            // Searchable select di SEMUA dropdown aplikasi — cukup diaktifkan sekali di sini.
-            // Dropdown yang sengaja dikunci (data-locked) dilewati.
+            // Searchable select untuk filter bar atau select dengan class .select2
+            // Sengaja TIDAK diterapkan pada select di dalam modal untuk menghindari bug HTML5 validation dan focus trap
             if (window.jQuery && jQuery.fn.select2) {
-                jQuery('select:not([data-locked])').select2({
+                jQuery('form:not(.modal form) select.select2, .filter-bar select:not([data-locked])').select2({
                     theme: 'bootstrap-5',
                     width: '100%',
                     dropdownAutoWidth: true,
                 });
             }
+
+            // Modal DOM Hoisting:
+            // Pastikan seluruh modal dipindahkan langsung sebagai child dari <body>.
+            // Hal ini mutlak diperlukan untuk mencegah modal tertutup modal-backdrop hitam
+            // atau terpotong oleh overflow/stacking context dari container, card, dan table-responsive.
+            function hoistModalsToBody() {
+                if (window.jQuery) {
+                    jQuery('.modal').each(function () {
+                        if (!jQuery(this).parent().is('body')) {
+                            jQuery(this).appendTo('body');
+                        }
+                    });
+                }
+            }
+
+            hoistModalsToBody();
+
+            if (window.jQuery) {
+                jQuery(document).on('show.bs.modal', '.modal', function () {
+                    if (!jQuery(this).parent().is('body')) {
+                        jQuery(this).appendTo('body');
+                    }
+                });
+            }
+
+            // Global Feedback: SweetAlert untuk flash message & validation error
+            @if (session('success'))
+                if (window.swal) {
+                    swal("Berhasil!", "{{ session('success') }}", "success");
+                }
+            @endif
+
+            @if (session('error'))
+                if (window.swal) {
+                    swal("Gagal!", "{{ session('error') }}", "error");
+                }
+            @endif
+
+            @if ($errors->any())
+                if (window.swal) {
+                    swal("Validasi Gagal", "{!! addslashes(implode('\n', $errors->all())) !!}", "warning");
+                }
+            @endif
 
             // Notifikasi stok menipis realtime — pakai SweetAlert (sudah ter-load) alih-alih alert() browser polos
             @if (config('broadcasting.connections.pusher.key'))

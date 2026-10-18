@@ -57,7 +57,7 @@ class UserController extends Controller
 
         $user->assignRole($request->role);
 
-        return redirect()->route('users.index')->with('success');
+        return redirect()->route('users.index')->with('success', 'Pengguna berhasil ditambahkan!');
     }
 
     public function update(Request $request, $id)
@@ -91,7 +91,7 @@ class UserController extends Controller
         // Sync role baru
         $user->syncRoles([$request->role]);
 
-        return redirect()->route('users.index')->with('success');
+        return redirect()->route('users.index')->with('success', 'Pengguna berhasil diperbarui!');
     }
 
     public function destroy($id)
@@ -105,6 +105,6 @@ class UserController extends Controller
         
         $user->delete();
 
-        return redirect()->route('users.index')->with('success');
+        return redirect()->route('users.index')->with('success', 'Pengguna berhasil dihapus!');
     }
 }

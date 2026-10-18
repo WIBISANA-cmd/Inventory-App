@@ -41,53 +41,57 @@
                                         </td>
                                     @endif
                                 </tr>
-
-                                <!-- Modal Edit -->
-                                <div class="modal fade" id="editBahanModal{{ $item->id }}" tabindex="-1"
-                                    aria-labelledby="editBahanModalLabel{{ $item->id }}" aria-hidden="true">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <form action="{{ route('bahanakhir.update', $item->id) }}" method="POST">
-                                                @csrf
-                                                @method('PUT')
-                                                <div class="modal-header">
-                                                    <h5 class="modal-title" id="editBahanModalLabel{{ $item->id }}">Edit Bahan Akhir</h5>
-                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
-                                                </div>
-                                                <div class="modal-body">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Tanggal</label>
-                                                        <input type="date" name="tanggal_input" class="form-control"
-                                                            value="{{ $item->tanggal_input }}" required>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Kode Bahan</label>
-                                                        <input type="text" name="kode_bahan" class="form-control"
-                                                            value="{{ $item->kode_bahan }}" required>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Nama Bahan</label>
-                                                        <input type="text" name="nama_bahan" class="form-control"
-                                                            value="{{ $item->nama_bahan }}" required>
-                                                    </div>
-                                                    <div class="mb-3">
-                                                        <label class="form-label">Stok Terakhir</label>
-                                                        <input type="number" name="stok_terakhir" class="form-control"
-                                                            value="{{ $item->stok_terakhir }}" required>
-                                                    </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="submit" class="btn btn-success">Simpan Perubahan</button>
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                                                </div>
-                                            </form>
-                                        </div>
-                                    </div>
-                                </div>
-                                <!-- End Modal -->
                             @endforeach
                         </tbody>
                     </table>
+
+                    @if(auth()->user()->hasRole('Admin'))
+                        @foreach ($bahanAkhir as $item)
+                            <!-- Modal Edit -->
+                            <div class="modal fade" id="editBahanModal{{ $item->id }}" tabindex="-1"
+                                aria-labelledby="editBahanModalLabel{{ $item->id }}" aria-hidden="true">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <form action="{{ route('bahanakhir.update', $item->id) }}" method="POST">
+                                            @csrf
+                                            @method('PUT')
+                                            <div class="modal-header">
+                                                <h5 class="modal-title" id="editBahanModalLabel{{ $item->id }}">Edit Bahan Akhir</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Tutup"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Tanggal</label>
+                                                    <input type="date" name="tanggal_input" class="form-control"
+                                                        value="{{ $item->tanggal_input }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Kode Bahan</label>
+                                                    <input type="text" name="kode_bahan" class="form-control"
+                                                        value="{{ $item->kode_bahan }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Nama Bahan</label>
+                                                    <input type="text" name="nama_bahan" class="form-control"
+                                                        value="{{ $item->nama_bahan }}" required>
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Stok Terakhir</label>
+                                                    <input type="number" name="stok_terakhir" class="form-control"
+                                                        value="{{ $item->stok_terakhir }}" required>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="submit" class="btn btn-success">Simpan Perubahan</button>
+                                                <button type="button" class="btn-secondary btn" data-bs-dismiss="modal">Batal</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- End Modal -->
+                        @endforeach
+                    @endif
                 @endif
             </div>
         </div>

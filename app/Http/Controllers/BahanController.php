@@ -104,16 +104,18 @@ class BahanController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'kode_bahan' => 'required',
-            'nama_bahan' => 'required',
-            'tipe' => 'required',
-            'jenis_bahan' => 'required',
-            'kategori_bahan' => 'required',
-            'sisa_stok' => 'nullable|integer',
-            'satuan' => 'required'
+            'kode_bahan' => 'required|unique:bahans,kode_bahan',
+            'nama_bahan' => 'required|string|max:255',
+            'tipe' => 'required|string',
+            'jenis_bahan' => 'required|string',
+            'kategori_bahan' => 'required|string',
+            'sisa_stok' => 'nullable|integer|min:0',
+            'satuan' => 'required|string',
+            'batas_minimum' => 'nullable|integer|min:0',
         ]);
 
-        $status = $request->sisa_stok > 2 ? 'AMAN' : ($request->sisa_stok > 0 ? 'MENIPIS' : 'HABIS');
+        $sisaStok = $request->input('sisa_stok', 0) ?? 0;
+        $status = $sisaStok > 2 ? 'AMAN' : ($sisaStok > 0 ? 'MENIPIS' : 'HABIS');
 
         Bahan::create([
             'kode_bahan' => $request->kode_bahan,
@@ -121,12 +123,13 @@ class BahanController extends Controller
             'tipe' => $request->tipe,
             'jenis_bahan' => $request->jenis_bahan,
             'kategori_bahan' => $request->kategori_bahan,
-            'sisa_stok' => $request->sisa_stok ?? 0,
+            'sisa_stok' => $sisaStok,
+            'batas_minimum' => $request->input('batas_minimum', 5) ?? 5,
             'satuan' => $request->satuan,
             'status' => $status
         ]);
 
-        return redirect()->back()->with('success');
+        return redirect()->route('bahan.index')->with('success', 'Bahan baku berhasil ditambahkan!');
     }
 
     public function cekStokMenipis()
@@ -143,28 +146,46 @@ class BahanController extends Controller
 
     public function update(Request $request, $id)
     {
+        $bahan = Bahan::findOrFail($id);
+
         $request->validate([
-            'nama_bahan' => 'required',
-            'jenis_bahan' => 'nullable',
-            'sisa_stok' => 'nullable|integer',
-            'satuan' => 'required',
-            'batas_minimum' => 'required|integer|min:0'
+            'nama_bahan' => 'required|string|max:255',
+            'jenis_bahan' => 'nullable|string',
+            'sisa_stok' => 'nullable|integer|min:0',
+            'satuan' => 'required|string',
+            'batas_minimum' => 'nullable|integer|min:0'
         ]);
 
-        $bahan = Bahan::findOrFail($id);
-        $bahan->update($request->only(['nama_bahan','jenis_bahan','sisa_stok','satuan', 'batas_minimum']));
+        $dataToUpdate = [
+            'nama_bahan' => $request->nama_bahan,
+            'satuan' => $request->satuan,
+        ];
 
-        return redirect()->back()->with('success');
+        if ($request->filled('jenis_bahan')) {
+            $dataToUpdate['jenis_bahan'] = $request->jenis_bahan;
+        }
+
+        if ($request->filled('sisa_stok')) {
+            $dataToUpdate['sisa_stok'] = (int) $request->sisa_stok;
+        }
+
+        if ($request->filled('batas_minimum')) {
+            $dataToUpdate['batas_minimum'] = (int) $request->batas_minimum;
+        }
+
+        $bahan->update($dataToUpdate);
+
+        return redirect()->route('bahan.index')->with('success', 'Bahan baku berhasil diperbarui!');
     }
 
     public function destroy($id)
     {
         $bahan = Bahan::findOrFail($id);
-        // Hapus semua data bahan_keluar yang terkait
+        // Hapus semua data bahan_keluar dan bahan_masuk yang terkait
         $bahan->bahanKeluar()->delete();
         $bahan->bahanMasuk()->delete();
-        // Hapus data bahan
         $bahan->delete();
-        return redirect()->back()->with('success');
+
+        return redirect()->route('bahan.index')->with('success', 'Bahan baku berhasil dihapus!');
     }
 }

@@ -19,8 +19,20 @@
         </div>
 
         @if (session('success'))
-            <div class="alert alert-success">
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
                 {{ session('success') }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
         @endif
 
@@ -122,33 +134,6 @@
                                 </form>
                             </td>
                         </tr>
-
-                        <!-- Modal Edit Menu Terjual -->
-                        <div class="modal fade" id="editMenuTerjualModal{{ $item->id }}" tabindex="-1"
-                            aria-labelledby="editMenuTerjualLabel{{ $item->id }}" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="editMenuTerjualLabel{{ $item->id }}">Edit Jumlah
-                                            Terjual</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form action="{{ route('menu.terjual.update', $item->id) }}" method="POST">
-                                            @csrf
-                                            @method('PUT')
-                                            <div class="mb-3">
-                                                <label class="form-label">Jumlah Terjual</label>
-                                                <input type="number" class="form-control" name="jumlah_terjual"
-                                                    value="{{ $item->jumlah_terjual }}" min="1" required>
-                                            </div>
-                                            <button type="submit" class="btn btn-success">Update</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     @endforeach
                 </tbody>
             </table>
@@ -158,6 +143,35 @@
         </div>
         </div>
     </div>
+
+    <!-- Modal Edit Menu Terjual -->
+    @foreach ($menuTerjual as $item)
+        <div class="modal fade" id="editMenuTerjualModal{{ $item->id }}" tabindex="-1"
+            aria-labelledby="editMenuTerjualLabel{{ $item->id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editMenuTerjualLabel{{ $item->id }}">Edit Jumlah
+                            Terjual</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{{ route('menu.terjual.update', $item->id) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+                            <div class="mb-3">
+                                <label class="form-label">Jumlah Terjual</label>
+                                <input type="number" class="form-control" name="jumlah_terjual"
+                                    value="{{ $item->jumlah_terjual }}" min="1" required>
+                            </div>
+                            <button type="submit" class="btn btn-success">Update</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
 
     <!-- Modal Tambah Menu Terjual -->
     <div class="modal fade" id="addMenuTerjualModal" tabindex="-1" aria-labelledby="addMenuTerjualLabel"

@@ -36,34 +36,35 @@ class KategoriController extends Controller
     }
 
     public function store(Request $request)
-{
-    $request->validate([
-        'kode_kategori' => 'required|unique:kategoris',
-        'keterangan' => 'nullable',
-    ]);
+    {
+        $request->validate([
+            'kode_kategori' => 'required|string|max:50|unique:kategoris,kode_kategori',
+            'nama_kategori' => 'nullable|string|max:255',
+            'keterangan' => 'nullable|string',
+        ]);
 
-    // Mapping kode kategori ke nama kategori
-    $namaKategoriMap = [
-        'BBAR' => 'Bahan Baku Bar',
-        'BBKTC' => 'Bahan Baku Kitchen',
-        'INVB' => 'Inventaris Bar',
-        'INVK' => 'Inventaris Kitchen',
-        'INVO' => 'Inventaris Operasional',
-    ];
+        // Mapping kode kategori ke nama kategori jika tidak diinput
+        $namaKategoriMap = [
+            'BBAR' => 'Bahan Baku Bar',
+            'BBKTC' => 'Bahan Baku Kitchen',
+            'INVB' => 'Inventaris Bar',
+            'INVK' => 'Inventaris Kitchen',
+            'INVO' => 'Inventaris Operasional',
+        ];
 
-    // Ambil nama kategori berdasarkan kode yang dipilih
-    $nama_kategori = $namaKategoriMap[$request->kode_kategori] ?? 'Kategori Tidak Diketahui';
+        $kode = strtoupper(trim($request->kode_kategori));
+        $nama = $request->filled('nama_kategori')
+            ? trim($request->nama_kategori)
+            : ($namaKategoriMap[$kode] ?? $kode);
 
-    // Simpan kategori
-    Kategori::create([
-        'kode_kategori' => $request->kode_kategori,
-        'nama_kategori' => $nama_kategori,
-        'keterangan' => $request->keterangan,
-    ]);
+        Kategori::create([
+            'kode_kategori' => $kode,
+            'nama_kategori' => $nama,
+            'keterangan' => $request->keterangan,
+        ]);
 
-    return redirect()->route('kategori.index')->with('success');
-}
-
+        return redirect()->route('kategori.index')->with('success', 'Kategori berhasil ditambahkan!');
+    }
 
     public function edit(Kategori $kategori)
     {
@@ -73,18 +74,23 @@ class KategoriController extends Controller
     public function update(Request $request, Kategori $kategori)
     {
         $request->validate([
-            'kode_kategori' => 'required|unique:kategoris,kode_kategori,' . $kategori->id,
-            'nama_kategori' => 'required',
-            'keterangan' => 'nullable',
+            'kode_kategori' => 'required|string|max:50|unique:kategoris,kode_kategori,' . $kategori->id,
+            'nama_kategori' => 'required|string|max:255',
+            'keterangan' => 'nullable|string',
         ]);
 
-        $kategori->update($request->all());
-        return redirect()->route('kategori.index')->with('success');
+        $kategori->update([
+            'kode_kategori' => strtoupper(trim($request->kode_kategori)),
+            'nama_kategori' => trim($request->nama_kategori),
+            'keterangan' => $request->keterangan,
+        ]);
+
+        return redirect()->route('kategori.index')->with('success', 'Kategori berhasil diperbarui!');
     }
 
     public function destroy(Kategori $kategori)
     {
         $kategori->delete();
-        return redirect()->route('kategori.index')->with('success');
+        return redirect()->route('kategori.index')->with('success', 'Kategori berhasil dihapus!');
     }
 }

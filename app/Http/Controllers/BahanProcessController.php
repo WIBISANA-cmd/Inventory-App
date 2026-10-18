@@ -132,57 +132,57 @@ class BahanProcessController extends Controller
             }
         }
 
-        return redirect()->back()->with('success');
+        return redirect()->route('bahan.process')->with('success', 'Bahan proses berhasil ditambahkan!');
     }
 
 
     public function update(Request $request, $id)
-{
-    // Validasi input
-    $request->validate([
-        'nama_bahan' => 'required|string|max:255',
-        'satuan' => 'required|string|in:gram,ml',
-        'batas_minimum' => 'required|integer|min:0',
-        'bahan_proses' => 'required|array',
-        'bahan_proses.*' => 'exists:bahans,id',
-        'gramasi' => 'required|array',
-        'gramasi.*' => 'nullable|numeric|min:0'
-    ]);
+    {
+        // Validasi input
+        $request->validate([
+            'nama_bahan' => 'required|string|max:255',
+            'satuan' => 'required|string|in:gram,ml',
+            'batas_minimum' => 'required|integer|min:0',
+            'bahan_proses' => 'required|array',
+            'bahan_proses.*' => 'exists:bahans,id',
+            'gramasi' => 'required|array',
+            'gramasi.*' => 'nullable|numeric|min:0'
+        ]);
 
-    // Ambil model
-    $bahanProses = BahanProcess::findOrFail($id);
+        // Ambil model
+        $bahanProses = BahanProcess::findOrFail($id);
 
-    // Hitung total gramasi hanya dari bahan yang dipilih
-    $totalGramasi = 0;
-    foreach ($request->bahan_proses as $bahanId) {
-        $gramasi = $request->gramasi[$bahanId] ?? null;
-        if (!is_null($gramasi)) {
-            $totalGramasi += (float) $gramasi;
+        // Hitung total gramasi hanya dari bahan yang dipilih
+        $totalGramasi = 0;
+        foreach ($request->bahan_proses as $bahanId) {
+            $gramasi = $request->gramasi[$bahanId] ?? null;
+            if (!is_null($gramasi)) {
+                $totalGramasi += (float) $gramasi;
+            }
         }
-    }
 
-    // Update field utama di model
-    $bahanProses->update([
-        'nama_bahan' => $request->nama_bahan,
-        'satuan' => $request->satuan,
-        'batas_minimum' => $request->batas_minimum,
-        'sisa_stok' => $totalGramasi, // Sesuaikan jika perlu dikosongkan
-    ]);
+        // Update field utama di model
+        $bahanProses->update([
+            'nama_bahan' => $request->nama_bahan,
+            'satuan' => $request->satuan,
+            'batas_minimum' => $request->batas_minimum,
+            'sisa_stok' => $totalGramasi, // Sesuaikan jika perlu dikosongkan
+        ]);
 
-    // Siapkan data pivot untuk sync (hanya bahan yang dipilih dan memiliki gramasi)
-    $pivotData = [];
-    foreach ($request->bahan_proses as $bahanId) {
-        $gramasi = $request->gramasi[$bahanId] ?? null;
-        if (!is_null($gramasi)) {
-            $pivotData[$bahanId] = ['gramasi' => (float) $gramasi];
+        // Siapkan data pivot untuk sync (hanya bahan yang dipilih dan memiliki gramasi)
+        $pivotData = [];
+        foreach ($request->bahan_proses as $bahanId) {
+            $gramasi = $request->gramasi[$bahanId] ?? null;
+            if (!is_null($gramasi)) {
+                $pivotData[$bahanId] = ['gramasi' => (float) $gramasi];
+            }
         }
+
+        // Sinkronisasi relasi many-to-many (bahan_proses <-> bahan)
+        $bahanProses->bahans()->sync($pivotData);
+
+        return redirect()->route('bahan.process')->with('success', 'Bahan proses berhasil diperbarui!');
     }
-
-    // Sinkronisasi relasi many-to-many (bahan_proses <-> bahan)
-    $bahanProses->bahans()->sync($pivotData);
-
-    return redirect()->back()->with('success');
-}
 
 
     public function destroy($id)
@@ -191,6 +191,6 @@ class BahanProcessController extends Controller
         $bahanProses->bahans()->detach();
         $bahanProses->delete();
 
-        return redirect()->route('bahan.process')->with('success');
+        return redirect()->route('bahan.process')->with('success', 'Bahan proses berhasil dihapus!');
     }
 }

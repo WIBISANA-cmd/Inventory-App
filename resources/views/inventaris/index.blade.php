@@ -20,6 +20,17 @@
             </div>
         @endif
 
+        @if ($errors->any())
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         {{-- Filter (server-side, supaya tetap benar lintas halaman pagination) --}}
         <x-filter-bar :action="route('inventaris.index')">
             <div class="col-12 col-md-3">
@@ -110,62 +121,6 @@
                                 </form>
                             </td>
                         </tr>
-
-                        <div class="modal fade" id="editInventarisModal{{ $item->id }}" tabindex="-1"
-                            aria-labelledby="editInventarisModalLabel{{ $item->id }}" aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title" id="editInventarisModalLabel{{ $item->id }}">Edit
-                                            Inventaris</h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
-                                            aria-label="Close"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <form action="{{ route('inventaris.update', $item->id) }}" method="POST">
-                                            @csrf
-                                            @method('PUT')
-                                            <div class="mb-3">
-                                                <label for="nama_inventaris{{ $item->id }}" class="form-label">Nama
-                                                    Inventaris</label>
-                                                <input type="text" class="form-control"
-                                                    id="nama_inventaris{{ $item->id }}" name="nama_inventaris"
-                                                    value="{{ $item->nama_inventaris }}" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="jumlah_inventaris{{ $item->id }}" class="form-label">Jumlah
-                                                    Inventaris</label>
-                                                <input type="number" class="form-control"
-                                                    id="jumlah_inventaris{{ $item->id }}" name="jumlah_inventaris"
-                                                    value="{{ $item->jumlah_inventaris }}" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="satuan{{ $item->id }}" class="form-label">Satuan
-                                                    Inventaris</label>
-                                                <input type="text" class="form-control" id="satuan{{ $item->id }}"
-                                                    name="satuan" value="{{ $item->satuan }}" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label for="kondisi{{ $item->id }}" class="form-label">Kondisi
-                                                    Inventaris</label>
-                                                <select class="form-select" id="kondisi{{ $item->id }}" name="kondisi"
-                                                    required>
-                                                    <option value="Baik"
-                                                        {{ $item->kondisi == 'Baik' ? 'selected' : '' }}>Baik</option>
-                                                    <option value="Rusak Ringan"
-                                                        {{ $item->kondisi == 'Rusak Ringan' ? 'selected' : '' }}>Rusak
-                                                        Ringan</option>
-                                                    <option value="Rusak Berat"
-                                                        {{ $item->kondisi == 'Rusak Berat' ? 'selected' : '' }}>Rusak Berat
-                                                    </option>
-                                                </select>
-                                            </div>
-                                            <button type="submit" class="btn btn-warning">Update Inventaris</button>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                     @endforeach
                 </tbody>
             </table>
@@ -175,6 +130,65 @@
         </div>
         </div>
     </div>
+
+    <!-- Modal Edit Inventaris -->
+    @foreach ($inventaris as $item)
+        <div class="modal fade" id="editInventarisModal{{ $item->id }}" tabindex="-1"
+            aria-labelledby="editInventarisModalLabel{{ $item->id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editInventarisModalLabel{{ $item->id }}">Edit
+                            Inventaris</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{{ route('inventaris.update', $item->id) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+                            <div class="mb-3">
+                                <label for="nama_inventaris{{ $item->id }}" class="form-label">Nama
+                                    Inventaris</label>
+                                <input type="text" class="form-control"
+                                    id="nama_inventaris{{ $item->id }}" name="nama_inventaris"
+                                    value="{{ $item->nama_inventaris }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="jumlah_inventaris{{ $item->id }}" class="form-label">Jumlah
+                                    Inventaris</label>
+                                <input type="number" class="form-control"
+                                    id="jumlah_inventaris{{ $item->id }}" name="jumlah_inventaris"
+                                    value="{{ $item->jumlah_inventaris ?? 1 }}" min="1" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="satuan{{ $item->id }}" class="form-label">Satuan
+                                    Inventaris</label>
+                                <input type="text" class="form-control" id="satuan{{ $item->id }}"
+                                    name="satuan" value="{{ $item->satuan }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="kondisi{{ $item->id }}" class="form-label">Kondisi
+                                    Inventaris</label>
+                                <select class="form-select" id="kondisi{{ $item->id }}" name="kondisi"
+                                    required>
+                                    <option value="Baik"
+                                        {{ $item->kondisi == 'Baik' ? 'selected' : '' }}>Baik</option>
+                                    <option value="Rusak Ringan"
+                                        {{ $item->kondisi == 'Rusak Ringan' ? 'selected' : '' }}>Rusak
+                                        Ringan</option>
+                                    <option value="Rusak Berat"
+                                        {{ $item->kondisi == 'Rusak Berat' ? 'selected' : '' }}>Rusak Berat
+                                    </option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-warning">Update Inventaris</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
 
     <div class="modal fade" id="addInventarisModal" tabindex="-1" aria-labelledby="addInventarisModalLabel"
         aria-hidden="true">
@@ -193,18 +207,23 @@
                                 @foreach ($kategoris as $kategori)
                                     @if (str_starts_with($kategori->kode_kategori, 'INV'))
                                         @php
-                                            $lastInventaris = App\Models\Inventaris::where(
-                                                'kode_inventaris',
-                                                'like',
-                                                "$kategori->kode_kategori%",
-                                            )
-                                                ->orderBy('kode_inventaris', 'desc')
-                                                ->first();
-                                            $nextNumber = $lastInventaris
-                                                ? ((int) substr($lastInventaris->kode_inventaris, -4)) + 1
-                                                : 1;
-                                            $kodeInventaris =
-                                                $kategori->kode_kategori . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
+                                            $prefix = $kategori->kode_kategori;
+                                            $existingCodes = App\Models\Inventaris::where('kode_inventaris', 'like', "$prefix%")->pluck('kode_inventaris');
+                                            $maxNum = 0;
+                                            $padLen = 3;
+                                            foreach ($existingCodes as $c) {
+                                                if (preg_match('/(\d+)$/', $c, $m)) {
+                                                    $val = (int)$m[1];
+                                                    if ($val > $maxNum) {
+                                                        $maxNum = $val;
+                                                    }
+                                                    if (strlen($m[1]) > $padLen) {
+                                                        $padLen = strlen($m[1]);
+                                                    }
+                                                }
+                                            }
+                                            $nextNumber = $maxNum + 1;
+                                            $kodeInventaris = $prefix . str_pad($nextNumber, $padLen, '0', STR_PAD_LEFT);
                                         @endphp
                                         <option value="{{ $kodeInventaris }}">{{ $kodeInventaris }} -
                                             {{ $kategori->nama_kategori }}</option>
@@ -218,10 +237,17 @@
                                 required>
                         </div>
                         <div class="mb-3">
+                            <label for="jumlah_inventaris" class="form-label">Jumlah Inventaris</label>
+                            <input type="number" class="form-control" id="jumlah_inventaris" name="jumlah_inventaris"
+                                value="1" min="1" required>
+                        </div>
+                        <div class="mb-3">
                             <label for="satuan" class="form-label">Satuan</label>
                             <select class="form-select" id="satuan" name="satuan" required>
                                 <option value="pcs">Pcs</option>
                                 <option value="pack">Pack</option>
+                                <option value="unit">Unit</option>
+                                <option value="set">Set</option>
                             </select>
                         </div>
                         <div class="mb-3">

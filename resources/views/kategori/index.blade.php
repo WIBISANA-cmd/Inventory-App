@@ -14,8 +14,20 @@
     </div>
 
     @if(session('success'))
-        <div class="alert alert-success">
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    @endif
+
+    @if($errors->any())
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <ul class="mb-0">
+                @foreach($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     @endif
 
@@ -49,23 +61,18 @@
                         @csrf
                         <div class="mb-3">
                             <label for="kode_kategori" class="form-label">Kode Kategori</label>
-                            <select class="form-select" id="kode_kategori" name="kode_kategori" required>
-                                <option value="BBAR">BBAR</option>
-                                <option value="BBKTC">BBKTC</option>
-                                <option value="INVB">INVB</option>
-                                <option value="INVK">INVK</option>
-                                <option value="INVO">INVO</option>
-                            </select>
+                            <input type="text" class="form-control" id="kode_kategori" name="kode_kategori" placeholder="Contoh: BBAR, INVB, BBOTH..." required style="text-transform: uppercase;">
+                            <small class="text-muted">Gunakan awalan BB untuk Bahan Baku atau INV untuk Inventaris.</small>
                         </div>
                         <div class="mb-3">
                             <label for="nama_kategori" class="form-label">Nama Kategori</label>
-                            <input type="text" class="form-control" id="nama_kategori" name="nama_kategori" required readonly>
+                            <input type="text" class="form-control" id="nama_kategori" name="nama_kategori" placeholder="Masukkan nama kategori" required>
                         </div>
                         <div class="mb-3">
                             <label for="keterangan" class="form-label">Keterangan</label>
-                            <textarea class="form-control" id="keterangan" name="keterangan"></textarea>
+                            <textarea class="form-control" id="keterangan" name="keterangan" placeholder="Keterangan opsional..."></textarea>
                         </div>
-                        <button type="submit" class="btn btn-primary">Simpan</button>
+                        <button type="submit" class="btn btn-primary w-100">Simpan</button>
                     </form>
                 </div>
             </div>
@@ -95,37 +102,6 @@
                         @method('DELETE')
                         <button type="submit" class="btn btn-danger btn-sm btn-delete">Hapus</button>
                     </form>
-
-                    <!-- Modal Edit Kategori -->
-                    <div class="modal fade" id="editKategoriModal{{ $kategori->id }}" tabindex="-1" aria-labelledby="editKategoriModalLabel{{ $kategori->id }}" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="editKategoriModalLabel{{ $kategori->id }}">Edit Kategori</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <form action="{{ route('kategori.update', $kategori->id) }}" method="POST">
-                                        @csrf
-                                        @method('PUT')
-                                        <div class="mb-3">
-                                            <label for="kode_kategori{{ $kategori->id }}" class="form-label">Kode Kategori</label>
-                                            <input type="text" class="form-control" id="kode_kategori{{ $kategori->id }}" name="kode_kategori" value="{{ $kategori->kode_kategori }}" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="nama_kategori{{ $kategori->id }}" class="form-label">Nama Kategori</label>
-                                            <input type="text" class="form-control" id="nama_kategori{{ $kategori->id }}" name="nama_kategori" value="{{ $kategori->nama_kategori }}" required>
-                                        </div>
-                                        <div class="mb-3">
-                                            <label for="keterangan{{ $kategori->id }}" class="form-label">Keterangan</label>
-                                            <textarea class="form-control" id="keterangan{{ $kategori->id }}" name="keterangan">{{ $kategori->keterangan }}</textarea>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary">Update</button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </td>
             </tr>
             @endforeach
@@ -134,6 +110,39 @@
 
     <x-table-pagination :paginator="$kategoris" label="kategori" />
     </div>
+
+    <!-- Modal Edit Kategori -->
+    @foreach($kategoris as $kategori)
+        <div class="modal fade" id="editKategoriModal{{ $kategori->id }}" tabindex="-1" aria-labelledby="editKategoriModalLabel{{ $kategori->id }}" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editKategoriModalLabel{{ $kategori->id }}">Edit Kategori</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form action="{{ route('kategori.update', $kategori->id) }}" method="POST">
+                            @csrf
+                            @method('PUT')
+                            <div class="mb-3">
+                                <label for="kode_kategori{{ $kategori->id }}" class="form-label">Kode Kategori</label>
+                                <input type="text" class="form-control" id="kode_kategori{{ $kategori->id }}" name="kode_kategori" value="{{ $kategori->kode_kategori }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="nama_kategori{{ $kategori->id }}" class="form-label">Nama Kategori</label>
+                                <input type="text" class="form-control" id="nama_kategori{{ $kategori->id }}" name="nama_kategori" value="{{ $kategori->nama_kategori }}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="keterangan{{ $kategori->id }}" class="form-label">Keterangan</label>
+                                <textarea class="form-control" id="keterangan{{ $kategori->id }}" name="keterangan">{{ $kategori->keterangan }}</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Update</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
 </div>
 {{-- SweetAlert sudah dimuat global di master.blade.php --}}
 <script>
