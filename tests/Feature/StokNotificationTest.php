@@ -1,20 +1,51 @@
 <?php
+
 namespace Tests\Feature;
 
-use Illuminate\Support\Facades\Mail;
+use App\Mail\StokMenipisNotification;
 use App\Models\Bahan;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
+use Tests\TestCase;
 
-$bahans = Bahan::where('sisa_stok', '<=', 5)->get();  // Ambil bahan dengan stok menipis atau habis
+class StokNotificationTest extends TestCase
+{
+    use RefreshDatabase;
 
-// Membuat string pesan untuk stok yang menipis atau habis
-$messageContent = "Berikut adalah bahan yang stoknya menipis atau habis:\n\n";
+    public function test_stok_notification_can_be_sent(): void
+    {
+        Mail::fake();
 
-foreach ($bahans as $bahan) {
-    $messageContent .= "Nama Bahan: {$bahan->nama_bahan}\n";
-    $messageContent .= "Sisa Stok: {$bahan->sisa_stok}\n\n";
+        Bahan::create([
+            'kode_bahan' => 'B001',
+            'nama_bahan' => 'Biji Kopi Arabika',
+            'tipe' => Bahan::TIPE_NON_PROCESS,
+            'jenis_bahan' => 'baku',
+            'kategori_bahan' => 'bar',
+            'sisa_stok' => 2,
+            'satuan' => 'kg',
+        ]);
+
+        $response = $this->get('/kirim-notifikasi-stok');
+
+        $response->assertStatus(200);
+        $this->assertEquals('Email notifikasi stok berhasil dikirim!', $response->getContent());
+
+        Mail::assertSent(StokMenipisNotification::class, function ($mail) {
+            return $mail->hasTo('owner@coffeeshop.com');
+        });
+    }
+
+    public function test_stok_notification_when_no_low_stock(): void
+    {
+        Mail::fake();
+
+        $response = $this->get('/kirim-notifikasi-stok');
+
+        $response->assertStatus(200);
+        $this->assertEquals('Tidak ada stok yang menipis atau habis.', $response->getContent());
+
+        Mail::assertNothingSent();
+    }
 }
 
-Mail::raw($messageContent, function ($message) {
-    $message->to('your@email.com')
-            ->subject('Notifikasi Stok Menipis/Habis');
-});

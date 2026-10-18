@@ -40,9 +40,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         libicu-dev \
         libxml2-dev \
         libonig-dev \
+        libpq-dev \
+        postgresql-client \
         default-mysql-client \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j"$(nproc)" \
+        pdo_pgsql \
+        pgsql \
         pdo_mysql \
         mbstring \
         exif \

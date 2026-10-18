@@ -32,8 +32,9 @@ Route::middleware('web')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('/profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::match(['put', 'patch'], '/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
 
@@ -88,9 +89,7 @@ Route::middleware(['role:Admin|Headbar|Headkitchen|Bar|Kitchen'])->group(functio
     Route::get('/bahan/akhir/tampilkan', [BahanAkhirController::class, 'tampilkan'])->name('bahan.akhir.tampilkan');
 });
 // route edit bahan akhir
-Route::put('/bahanakhir/{id}', [DataBahanakhirController::class, 'update'])->name('bahanakhir.update');
-// route update single bahan akhir
-Route::put('/bahanakhir/update/{id}', [DataBahanakhirController::class, 'updateSingle'])->name('bahanakhir.update');
+Route::put('/bahanakhir/{id}', [DataBahanakhirController::class, 'updateSingle'])->name('bahanakhir.update');
 
 // Routes untuk Bahan Keluar
 Route::middleware(['role:Admin|Headbar|Headkitchen|Bar|Kitchen'])->group(function () {
@@ -123,18 +122,10 @@ Route::middleware(['role:Admin'])->group(function () {
 // route Menu
 Route::middleware(['role:Admin|Headbar|Headkitchen|Bar|Kitchen'])->group(function () {
     Route::resource('menu', MenuController::class);
-    Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
-    Route::post('/menu', [MenuController::class, 'store'])->name('menu.store');
-    Route::put('/menu/{id}', [MenuController::class, 'update'])->name('menu.update');
-    Route::delete('/menu/{id}', [MenuController::class, 'destroy'])->name('menu.destroy');
 });
 // route inventaris
 Route::middleware(['role:Admin|Headbar|Headkitchen'])->group(function () {
     Route::resource('inventaris', InventarisController::class);
-    Route::get('/inventaris', [InventarisController::class, 'index'])->name('inventaris.index');
-    Route::post('/inventaris', [InventarisController::class, 'store'])->name('inventaris.store');
-    Route::put('/inventaris/{id}', [InventarisController::class, 'update'])->name('inventaris.update');
-    Route::delete('/inventaris/{id}', [InventarisController::class, 'destroy'])->name('inventaris.destroy');
     Route::get('/inventaris/cetak-barcode/{id}', [InventarisController::class, 'cetakBarcode'])->name('inventaris.cetakBarcode');
 });
 // routes inventaris
@@ -142,11 +133,7 @@ Route::get('/scan-inventaris/{id}', [InventarisController::class, 'showAfterLogi
     ->middleware('auth')
     ->name('inventaris.scan');
 
-// profile
-Route::middleware(['role:Admin|Headbar|Headkitchen|Bar|Kitchen'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'index'])->name('profile.index');
-    Route::put('/profile', [ProfileController::class, 'update'])->name('profile.update');
-});
+
 // Menu Terjual
 Route::middleware(['auth', 'role:Admin|Headbar|Headkitchen'])->group(function () {  
     Route::prefix('menu-terjual')->group(function () {
@@ -160,8 +147,7 @@ Route::middleware(['auth', 'role:Admin|Headbar|Headkitchen'])->group(function ()
 // route pemantauan bahan
 Route::middleware(['role:Admin|Headbar|Headkitchen|Bar|Kitchen'])->group(function () {
 Route::get('/pemantauan-bahan', [PemantauanController::class, 'index'])->name('laporan.pemantauan');
-Route::get('/laporan/pemantauan/pdf', [PemantauanController::class, 'downloadPDF'])->name('laporan.pemantauan.pdf');
-Route::post('/laporan/pemantauan/pdf', [PemantauanController::class, 'downloadPDF'])->name('laporan.pemantauan.pdf');
+Route::match(['get', 'post'], '/laporan/pemantauan/pdf', [PemantauanController::class, 'downloadPDF'])->name('laporan.pemantauan.pdf');
 
 });
 // Route bahan process

@@ -13,6 +13,11 @@ class ProfileController extends Controller
         return view('profile.index');
     }
 
+    public function edit()
+    {
+        return view('profile.index');
+    }
+
     public function update(Request $request)
     {
         $user = Auth::user();
@@ -32,11 +37,34 @@ class ProfileController extends Controller
 
         $user->name = $request->name;
         $user->email = $request->email;
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
         if ($request->password) {
             $user->password = Hash::make($request->password);
         }
         $user->save();
 
-        return redirect()->route('profile.index')->with('success');
+        return redirect()->route('profile.index')->with('success', 'Profil berhasil diperbarui.');
+    }
+
+    public function destroy(Request $request)
+    {
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+
+        Auth::logout();
+
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
     }
 }

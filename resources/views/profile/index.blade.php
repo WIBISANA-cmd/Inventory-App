@@ -1,5 +1,5 @@
 @extends('layouts.master')
-@section('Profil | Merra Inventory')
+@section('title', 'Profil | Merra Inventory')
 @section('profile')
 <div class="container">
     <div class="row justify-content-center my-5 fade-in-up">
